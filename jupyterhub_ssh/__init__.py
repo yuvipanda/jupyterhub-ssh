@@ -66,15 +66,26 @@ class Terminado:
     async def on_receive(self, on_receive):
         """
         Add callback for when data is received from terminado
+
+        on_receive is called for each incoming message. Receives the JSON decoded
+        message as only param.
+
+        Returns when the connection has been closed
         """
         while True:
-            data = await self.ws.recv()
+            try:
+                data = await self.ws.recv()
+            except websockets.exceptions.ConnectionClosedError as e:
+                break
             await on_receive(json.loads(data))
 
 
 HUB_URL = URL('https://datahub.berkeley.edu')
 
 class MySSHServer(asyncssh.SSHServer):
+    def connection_made(self, conn):
+        self._conn = conn
+
     def password_auth_supported(self):
         return True
 
@@ -145,10 +156,18 @@ class MySSHServer(asyncssh.SSHServer):
 
         async with terminado.connect():
             tasks = [
-                asyncio.create_task(terminado.on_receive(partial(self._handle_ws_recv, stdout))),
+                asyncio.create_task(
+                    terminado.on_receive(partial(self._handle_ws_recv, stdout))
+                ),
                 asyncio.create_task(self._handle_stdin(stdin, terminado))
             ]
-            await asyncio.gather(*tasks)
+            # Return when websocket or stdin reading tasks is done
+            done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+            # FIXME: If websocket died first, close stdin
+            # FIXME: If stdin died first, close websocket.
+            self._conn.close()
+            for t in pending:
+                t.cancel()
 
     def session_requested(self):
         return self._handle_client
