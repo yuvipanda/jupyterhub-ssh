@@ -3,6 +3,8 @@ import asyncio
 import logging
 from yarl import URL
 from functools import partial
+from traitlets.config import Application
+from traitlets import Integer, Unicode, Bool
 
 from aiohttp import ClientSession
 
@@ -11,8 +13,14 @@ from .terminado import Terminado
 
 HUB_URL = URL('https://datahub.berkeley.edu')
 
-class MySSHServer(asyncssh.SSHServer):
+class NotebookSSHServer(asyncssh.SSHServer):
+    """
+    A single SSH connection mapping to a notebook server on a JupyterHub
+    """
     def connection_made(self, conn):
+        """
+        Connection has been successfully established
+        """
         self._conn = conn
 
     def password_auth_supported(self):
@@ -107,17 +115,60 @@ class MySSHServer(asyncssh.SSHServer):
     def session_requested(self):
         return self._handle_client
 
-async def start_server():
-    await asyncssh.listen(
-        host='',
-        port=8022,
-        server_factory=MySSHServer,
-        line_editor=False,
-        server_host_keys=['ssh_host_key']
+
+class JupyterHubSSHApp(Application):
+    port = Integer(
+        8022,
+        help="""
+        Port the ssh server listens on
+        """,
+        config=True
     )
 
-logger = logging.getLogger('asyncssh')
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler())
-asyncio.get_event_loop().run_until_complete(start_server())
-asyncio.get_event_loop().run_forever()
+    debug = Bool(
+        True,
+        help="""
+        Turn on debugg logging
+        """,
+        config=True
+    )
+
+    def init_logging(self):
+        """
+        Make traitlets & asyncssh logging work properly
+
+        self.log is managed by traitlets, while the logger named
+        asyncssh is managed by asyncssh. We want the debug flag to
+        control debug logs everywhere, so we wire 'em together here.
+
+        """
+        self.log.setLevel(logging.DEBUG if self.debug else logging.INFO)
+        # This propagates traitlet logs to root logger - somehow,
+        # no logs were coming out otherwise
+        self.log.propagate = True
+
+        asyncssh_logger = logging.getLogger('asyncssh')
+        asyncssh_logger.propagate = True
+        asyncssh_logger.parent = self.log
+        asyncssh_logger.setLevel(self.log.level)
+
+    def initialize(self, *args, **kwargs):
+        super().initialize(*args, **kwargs)
+        self.init_logging()
+
+    async def start_server(self):
+        await asyncssh.listen(
+            host='',
+            port=self.port,
+            server_factory=NotebookSSHServer,
+            line_editor=False,
+            password_auth=True,
+            server_host_keys=['ssh_host_key']
+        )
+
+def main():
+    app = JupyterHubSSHApp()
+    app.initialize()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(app.start_server())
+    loop.run_forever()
