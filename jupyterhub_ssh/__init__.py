@@ -154,7 +154,13 @@ class MySSHServer(asyncssh.SSHServer):
         async with ClientSession(headers=headers) as client:
             terminado = await Terminado.create(client, self.notebook_url, self.token)
 
+        channel = stdin.channel
+
         async with terminado.connect():
+            if channel.get_terminal_type():
+                rows, cols = channel.get_terminal_size()[:2]
+                await terminado.set_size(rows, rows)
+
             tasks = [
                 asyncio.create_task(
                     terminado.on_receive(partial(self._handle_ws_recv, stdout))
