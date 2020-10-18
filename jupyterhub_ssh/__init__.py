@@ -5,6 +5,7 @@ import websockets
 import json
 from yarl import URL
 from contextlib import asynccontextmanager
+from functools import partial
 
 from aiohttp import ClientSession
 
@@ -62,6 +63,14 @@ class Terminado:
         """
         return self.send(['set_size', rows, cols])
 
+    async def on_receive(self, on_receive):
+        """
+        Add callback for when data is received from terminado
+        """
+        while True:
+            data = await self.ws.recv()
+            await on_receive(json.loads(data))
+
 
 HUB_URL = URL('https://datahub.berkeley.edu')
 
@@ -85,6 +94,44 @@ class MySSHServer(asyncssh.SSHServer):
                 self.notebook_url = HUB_URL / user['servers']['']['url'][1:]
                 return True
 
+    async def _handle_ws_recv(self, stdout, data_packet):
+        """
+        Handle receiving a single data message from terminado.
+        """
+        kind, data = data_packet
+        if kind == 'setup':
+            # Signals we can get going now!
+            return
+        elif kind == 'change':
+            # Sets terminal size, but let's ignore this for now
+            return
+        elif kind == 'disconnect':
+            # Not exactly sure what to do here?
+            return
+        elif kind != 'stdout':
+            raise ValueError(f'Unknown type {data[0]} received from terminado')
+        stdout.write(data)
+        await stdout.drain()
+
+
+    async def _handle_stdin(self, stdin, terminado):
+        """
+        Handle receiving a single byte from stdin
+
+        We aren't buffering anything rn, but maybe we should?
+        """
+        while not stdin.at_eof():
+            try:
+                data = await stdin.read(4096)
+                await terminado.send_stdin(data)
+            except asyncio.TimeoutError:
+                pass
+            except asyncssh.misc.TerminalSizeChanged as e:
+                await terminado.set_size(e.height, e.width)
+            except asyncssh.misc.BreakReceived:
+                pass
+
+
     async def _handle_client(self, stdin, stdout, stderr):
         """
         Handle a single ssh client
@@ -97,29 +144,11 @@ class MySSHServer(asyncssh.SSHServer):
             terminado = await Terminado.create(client, self.notebook_url, self.token)
 
         async with terminado.connect():
-            # FIXME: Make this *actually* full duplex!
-            # FIXME: This is terrible!
-            while not stdin.at_eof():
-                try:
-                    data = await asyncio.wait_for(stdin.read(4096), 0.01)
-                    await terminado.send_stdin(data)
-                except asyncio.TimeoutError:
-                    pass
-                except asyncssh.misc.TerminalSizeChanged as e:
-                    await terminado.set_size(e.height, e.width)
-                except asyncssh.misc.BreakReceived:
-                    pass
-
-                try:
-                    in_data = json.loads(await asyncio.wait_for(terminado.ws.recv(), 0.01))
-                    if in_data[0] == 'stdout':
-                        stdout.write(in_data[1])
-                        await stdout.drain()
-                    elif in_data[0] == 'stderr':
-                        stderr.write(in_data[1])
-                        await stderr.drain()
-                except asyncio.TimeoutError:
-                    pass
+            tasks = [
+                asyncio.create_task(terminado.on_receive(partial(self._handle_ws_recv, stdout))),
+                asyncio.create_task(self._handle_stdin(stdin, terminado))
+            ]
+            await asyncio.gather(*tasks)
 
     def session_requested(self):
         return self._handle_client
