@@ -80,7 +80,7 @@ class NotebookSSHServer(asyncssh.SSHServer):
 
     async def _handle_client(self, stdin, stdout, stderr):
         """
-        Handle a single ssh client
+        Handle data transfer once session has been fully established.
         """
         headers = {
             'Authorization': f'token {self.token}'
@@ -92,21 +92,46 @@ class NotebookSSHServer(asyncssh.SSHServer):
         channel = stdin.channel
 
         async with terminado.connect():
+            # If a pty has been asked for, we tell terminado what the pty's current size is
+            # Otherwise, terminado uses default size of 80x22
             if channel.get_terminal_type():
                 rows, cols = channel.get_terminal_size()[:2]
                 await terminado.set_size(rows, rows)
 
-            tasks = [
-                asyncio.create_task(
-                    terminado.on_receive(partial(self._handle_ws_recv, stdout))
-                ),
-                asyncio.create_task(self._handle_stdin(stdin, terminado))
-            ]
-            # Return when websocket or stdin reading tasks is done
+            # We run two tasks concurrently
+            #
+            # terminado's stdout -> ssh stdout
+            # ssh stdin -> terminado's stdin
+            #
+            # Terminado doesn't seem to separate out stderr, so we leave it alone
+            #
+            # When either of these tasks exit, we want to:
+            # 1. Clean up the other task
+            # 2. (Ideally) close the terminal opened by terminado on the notebook server
+            # 3. Close the ssh connection
+            #
+            # We don't do all of these yet in a way that I can be satisfied with.
+
+           
+            # Pipe stdout from terminado to ssh
+            ws_to_stdout = asyncio.create_task(
+                terminado.on_receive(partial(self._handle_ws_recv, stdout))
+            )
+            #
+            # Pipe stdin from ssh to terminado
+            stdin_to_ws = asyncio.create_task(self._handle_stdin(stdin, terminado))
+
+            tasks = [ws_to_stdout, stdin_to_ws]
+           
+            # Wait for either pipe to be done
             done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-            # FIXME: If websocket died first, close stdin
-            # FIXME: If stdin died first, close websocket.
+
+            # At least one of the pipes is done.
+            # Close the ssh connection explicitly
             self._conn.close()
+
+            # Explicitly cancel the other tasks currently pending
+            # FIXME: I don't know if this actually does anything?
             for t in pending:
                 t.cancel()
 
