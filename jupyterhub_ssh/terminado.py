@@ -4,36 +4,39 @@ from contextlib import asynccontextmanager
 
 
 class Terminado:
-    @classmethod
-    async def create(cls, session, notebook_url, token):
-        notebook_secure = notebook_url.scheme == 'https'
-
-        create_url = notebook_url / "api/terminals"
-        async with session.post(create_url) as resp:
-            data = await resp.json()
-        terminal_name = data['name']
-        socket_url = notebook_url / 'terminals/websocket' / terminal_name
-        return cls(
-            notebook_url=notebook_url,
-            token=token,
-            ws_url=socket_url.with_scheme('wss' if notebook_secure else 'ws')
-        )
-
-    def __init__(self, notebook_url, token, ws_url):
+    def __init__(self, notebook_url, token, session):
         self.notebook_url = notebook_url
         self.token = token
-        self.ws_url = ws_url
-        self.ws = None
+        self.session = session
 
-    @asynccontextmanager
-    async def connect(self):
-        headers = {
+        self.headers = {
             'Authorization': f'token {self.token}'
         }
-        async with websockets.connect(str(self.ws_url), extra_headers=headers) as ws:
-            self.ws = ws
-            yield
-        self.ws = None
+
+    async def __aenter__(self):
+        """
+        Create a terminal & connect to it
+        """
+        notebook_secure = self.notebook_url.scheme == 'https'
+
+        create_url = self.notebook_url / "api/terminals"
+        async with self.session.post(create_url, headers=self.headers) as resp:
+            data = await resp.json()
+        terminal_name = data['name']
+        socket_url = self.notebook_url / 'terminals/websocket' / terminal_name
+        ws_url = socket_url.with_scheme('wss' if notebook_secure else 'ws')
+
+        self.ws = await websockets.connect(str(ws_url), extra_headers=self.headers)
+
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        """
+        Close the websocket to terminado
+
+        FIXME: Also delete the terminal on the notebook server
+        """
+        await self.ws.close()
 
     def send(self, data):
         """

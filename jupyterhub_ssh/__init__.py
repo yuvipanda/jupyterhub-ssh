@@ -82,18 +82,11 @@ class NotebookSSHServer(asyncssh.SSHServer):
         """
         Handle data transfer once session has been fully established.
         """
-        headers = {
-            'Authorization': f'token {self.token}'
-        }
+        async with ClientSession() as client, Terminado(self.notebook_url, self.token, client) as terminado:
 
-        async with ClientSession(headers=headers) as client:
-            terminado = await Terminado.create(client, self.notebook_url, self.token)
-
-        channel = stdin.channel
-
-        async with terminado.connect():
             # If a pty has been asked for, we tell terminado what the pty's current size is
             # Otherwise, terminado uses default size of 80x22
+            channel = stdin.channel
             if channel.get_terminal_type():
                 rows, cols = channel.get_terminal_size()[:2]
                 await terminado.set_size(rows, rows)
