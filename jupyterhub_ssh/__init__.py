@@ -5,6 +5,7 @@ from yarl import URL
 from functools import partial
 from traitlets.config import Application
 from traitlets import Integer, Unicode, Bool
+from async_timeout import timeout
 
 from aiohttp import ClientSession
 
@@ -26,6 +27,62 @@ class NotebookSSHServer(asyncssh.SSHServer):
     def password_auth_supported(self):
         return True
 
+    async def get_user_server_url(self, session, username):
+        """
+        Return user's server url if it is running.
+
+        Else return None
+        """
+        async with session.get(HUB_URL / 'hub/api/users' / username) as resp:
+            if resp.status != 200:
+                return None
+            user = await resp.json()
+            print(user)
+            # URLs will have preceding slash, but yarl forbids those
+            server = user.get('servers', {}).get('', {})
+            if server.get('ready', False):
+                return HUB_URL / user['servers']['']['url'][1:]
+            else:
+                return None
+
+    async def start_user_server(self, session, username):
+        """
+        """
+        create_url = HUB_URL / 'hub/api/users' / username / 'server'
+        get_url = HUB_URL / 'hub/api/users' / username
+        async with session.post(create_url) as resp:
+            if resp.status == 201 or resp.status == 400:
+                # Server started quickly
+                # We manually generate this, even though it's *bad*
+                # Mostly because when the server is already running, JupyterHub
+                # doesn't respond with the whole model!
+                return HUB_URL / 'user' / username
+            elif resp.status == 202:
+                # Server start requested, not done yet
+                # We check for a while, reporting progress to user - until we're done
+                try:
+                    # FIXME: Make this configurable?
+                    async with timeout(30):
+                        notebook_url = None
+                        self._conn.send_auth_banner('Starting your server...')
+                        while notebook_url is None:
+                            # FIXME: Exponential backoff + make this configurable
+                            await asyncio.sleep(0.5)
+                            notebook_url = await self.get_user_server_url(session, username)
+                            self._conn.send_auth_banner('.')
+                        self._conn.send_auth_banner('done!\n')
+                        return notebook_url
+                except asyncio.TimeoutError:
+                    # Server didn't start on time!
+                    self._conn.send_auth_banner('failed to start server on time!\n')
+                    return None
+            elif resp.status == 403:
+                # Token is wrong!
+                return None
+            else:
+                # FIXME: Handle other cases that pop up
+                resp.raise_for_status()
+
     async def validate_password(self, username, token):
         self.username = username
         self.token = token
@@ -34,12 +91,11 @@ class NotebookSSHServer(asyncssh.SSHServer):
             'Authorization': f'token {token}'
         }
         async with ClientSession(headers=headers) as session:
-            async with session.get(HUB_URL / 'hub/api/users' / username) as resp:
-                if resp.status != 200:
-                    return False
-                user = await resp.json()
-                # URLs will have preceding slash, but yarl forbids those
-                self.notebook_url = HUB_URL / user['servers']['']['url'][1:]
+            notebook_url = await self.start_user_server(session, username)
+            if notebook_url is None:
+                return False
+            else:
+                self.notebook_url = notebook_url
                 return True
 
     async def _handle_ws_recv(self, stdout, data_packet):
