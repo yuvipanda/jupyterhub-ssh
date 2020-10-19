@@ -4,7 +4,7 @@ import logging
 from yarl import URL
 from functools import partial
 from traitlets.config import Application
-from traitlets import Integer, Unicode, Bool
+from traitlets import Integer, Unicode, Bool, Any
 from async_timeout import timeout
 
 from aiohttp import ClientSession
@@ -12,12 +12,14 @@ from aiohttp import ClientSession
 from .terminado import Terminado
 
 
-HUB_URL = URL('https://datahub.berkeley.edu')
-
 class NotebookSSHServer(asyncssh.SSHServer):
     """
     A single SSH connection mapping to a notebook server on a JupyterHub
     """
+    def __init__(self, app, *args, **kwargs):
+        self.app = app
+        super().__init__(*args, **kwargs)
+
     def connection_made(self, conn):
         """
         Connection has been successfully established
@@ -33,7 +35,7 @@ class NotebookSSHServer(asyncssh.SSHServer):
 
         Else return None
         """
-        async with session.get(HUB_URL / 'hub/api/users' / username) as resp:
+        async with session.get(self.app.hub_url / 'hub/api/users' / username) as resp:
             if resp.status != 200:
                 return None
             user = await resp.json()
@@ -41,22 +43,21 @@ class NotebookSSHServer(asyncssh.SSHServer):
             # URLs will have preceding slash, but yarl forbids those
             server = user.get('servers', {}).get('', {})
             if server.get('ready', False):
-                return HUB_URL / user['servers']['']['url'][1:]
+                return self.app.hub_url / user['servers']['']['url'][1:]
             else:
                 return None
 
     async def start_user_server(self, session, username):
         """
         """
-        create_url = HUB_URL / 'hub/api/users' / username / 'server'
-        get_url = HUB_URL / 'hub/api/users' / username
+        create_url = self.app.hub_url / 'hub/api/users' / username / 'server'
         async with session.post(create_url) as resp:
             if resp.status == 201 or resp.status == 400:
                 # Server started quickly
                 # We manually generate this, even though it's *bad*
                 # Mostly because when the server is already running, JupyterHub
                 # doesn't respond with the whole model!
-                return HUB_URL / 'user' / username
+                return self.app.hub_url / 'user' / username
             elif resp.status == 202:
                 # Server start requested, not done yet
                 # We check for a while, reporting progress to user - until we're done
@@ -216,6 +217,15 @@ class JupyterHubSSH(Application):
         config=True
     )
 
+    # FIXME: Make this a yarl.URL object?
+    hub_url = Any(
+        '',
+        help="""
+        URL of JupyterHub to connect to
+        """,
+        config=True
+    )
+
     def init_logging(self):
         """
         Make traitlets & asyncssh logging work properly
@@ -240,11 +250,15 @@ class JupyterHubSSH(Application):
         self.load_config_file(self.config_file)
         self.init_logging()
 
+        # FIXME: Do this as a traitlet instead somehow?
+        # THIS IS DIRTY MAKES ME SAD
+        self.hub_url = URL(self.hub_url)
+
     async def start_server(self):
         await asyncssh.listen(
             host='',
             port=self.port,
-            server_factory=NotebookSSHServer,
+            server_factory=partial(NotebookSSHServer, self),
             line_editor=False,
             password_auth=True,
             server_host_keys=['ssh_host_key']
