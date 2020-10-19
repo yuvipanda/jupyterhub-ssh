@@ -191,7 +191,15 @@ class NotebookSSHServer(asyncssh.SSHServer):
         return self._handle_client
 
 
-class JupyterHubSSHApp(Application):
+class JupyterHubSSH(Application):
+    config_file = Unicode(
+        'jupyterhub_ssh_config.py',
+        help="""
+        Config file to load JupyterHub SSH config from
+        """,
+        config=True
+    )
+
     port = Integer(
         8022,
         help="""
@@ -229,6 +237,7 @@ class JupyterHubSSHApp(Application):
 
     def initialize(self, *args, **kwargs):
         super().initialize(*args, **kwargs)
+        self.load_config_file(self.config_file)
         self.init_logging()
 
     async def start_server(self):
@@ -242,7 +251,7 @@ class JupyterHubSSHApp(Application):
         )
 
 def main():
-    app = JupyterHubSSHApp()
+    app = JupyterHubSSH()
     app.initialize()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(app.start_server())
