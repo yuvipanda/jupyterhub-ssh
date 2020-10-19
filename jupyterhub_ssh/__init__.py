@@ -221,7 +221,19 @@ class JupyterHubSSH(Application):
     hub_url = Any(
         '',
         help="""
-        URL of JupyterHub to connect to
+        URL of JupyterHub to connect to.
+
+        *Must* be set.
+        """,
+        config=True
+    )
+
+    host_key_path = Unicode(
+        '',
+        help="""
+        Path to host's private SSH Key.
+
+        *Must* be set.
         """,
         config=True
     )
@@ -261,7 +273,7 @@ class JupyterHubSSH(Application):
             server_factory=partial(NotebookSSHServer, self),
             line_editor=False,
             password_auth=True,
-            server_host_keys=['ssh_host_key'],
+            server_host_keys=[self.host_key_path],
             agent_forwarding=False, # The cause of so much pain! Let's not allow this by default
             keepalive_interval=30 # FIXME: Make this configurable
         )
