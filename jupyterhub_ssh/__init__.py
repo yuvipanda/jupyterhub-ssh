@@ -70,6 +70,9 @@ class NotebookSSHServer(asyncssh.SSHServer):
         """
         while not stdin.at_eof():
             try:
+                # Return *upto* 4096 bytes from the stdin buffer
+                # Returns pretty immediately - doesn't *wait* for 4096 bytes
+                # to be present in the buffer.
                 data = await stdin.read(4096)
                 await terminado.send_stdin(data)
             except asyncssh.misc.TerminalSizeChanged as e:
