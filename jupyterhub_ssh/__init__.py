@@ -72,8 +72,6 @@ class NotebookSSHServer(asyncssh.SSHServer):
             try:
                 data = await stdin.read(4096)
                 await terminado.send_stdin(data)
-            except asyncio.TimeoutError:
-                pass
             except asyncssh.misc.TerminalSizeChanged as e:
                 await terminado.set_size(e.height, e.width)
             except asyncssh.misc.BreakReceived:
