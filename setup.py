@@ -23,6 +23,7 @@ setuptools.setup(
         'asyncssh',
         'aiohttp',
         'yarl',
-        'websockets'
+        'websockets',
+        'async-timeout'
     ]
 )
