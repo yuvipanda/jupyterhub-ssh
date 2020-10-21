@@ -5,7 +5,7 @@ replicaCount: 1
 
 image:
   repository: yuvipanda/jupyterhub-ssh-jupyterhub
-  tag: '0.0.1-n022.h5a351df'
+  tag: '0.0.1-n023.h9c46a73'
   pullPolicy: Always
 
   name: yuvipanda/jupyterhub-ssh-jupyterhub

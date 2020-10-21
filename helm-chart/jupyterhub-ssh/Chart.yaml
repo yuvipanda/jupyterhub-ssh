@@ -2,4 +2,4 @@ apiVersion: v1
 appVersion: '0.1'
 description: SSH Interface to JupyterHub
 name: jupyterhub-ssh
-version: 0.0.1-n022.h5a351df
+version: 0.0.1-n023.h9c46a73
