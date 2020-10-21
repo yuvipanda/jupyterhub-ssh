@@ -3,6 +3,15 @@ entries:
   jupyterhub-ssh:
   - apiVersion: v1
     appVersion: "0.1"
+    created: "2020-10-21T23:59:46.413163+05:30"
+    description: SSH Interface to JupyterHub
+    digest: 6d6ef78daa78f047a2099fd07f912c355bdd1924a9ce1fb2bd0a3b9096779489
+    name: jupyterhub-ssh
+    urls:
+    - https://yuvipanda.github.io/jupyterhub-ssh/jupyterhub-ssh-0.0.1-n024.h222f33b.tgz
+    version: 0.0.1-n024.h222f33b
+  - apiVersion: v1
+    appVersion: "0.1"
     created: "2020-10-21T13:48:48.821457+05:30"
     description: SSH Interface to JupyterHub
     digest: 7f9b6d20a7ada5847d99b6928d984b224a2b811ded90d258faefa67287c197d6
@@ -19,4 +28,4 @@ entries:
     urls:
     - https://yuvipanda.github.io/jupyterhub-ssh/jupyterhub-ssh-0.0.1-n022.h5a351df.tgz
     version: 0.0.1-n022.h5a351df
-generated: "2020-10-21T13:48:48.820915+05:30"
+generated: "2020-10-21T23:59:46.412529+05:30"
