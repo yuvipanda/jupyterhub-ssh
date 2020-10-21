@@ -1,0 +1,12 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ template "..fullname" . }}
+  labels:
+    app: {{ template "..name" . }}
+    chart: {{ template "..chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  values.yaml: |
+    {{ .Values | toYaml | nindent 4 }}

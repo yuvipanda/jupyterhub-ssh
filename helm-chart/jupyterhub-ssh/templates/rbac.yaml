@@ -1,0 +1,43 @@
+{{ if .Values.rbac.enabled -}}
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: {{ template "..fullname" . }}
+  labels:
+    app: {{ template "..name" . }}
+    chart: {{ template "..chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["pods", "pods/exec", "pods/portforward", "persistentvolumeclaims"]
+  verbs: ["get", "watch", "list", "create", "delete"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: {{ template "..fullname" . }}
+  labels:
+    app: {{ template "..name" . }}
+    chart: {{ template "..chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+subjects:
+- kind: ServiceAccount
+  namespace: {{ .Release.Namespace }}
+  name: {{ template "..fullname" . }}
+roleRef:
+  kind: Role
+  name: {{ template "..fullname" . }}
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ template "..fullname" . }}
+  labels:
+    app: {{ template "..name" . }}
+    chart: {{ template "..chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{- end }}

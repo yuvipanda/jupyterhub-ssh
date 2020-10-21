@@ -1,0 +1,22 @@
+charts:
+  - name: jupyterhub-ssh
+    imagePrefix: yuvipanda/jupyterhub-ssh-
+    repo:
+      git: yuvipanda/jupyterhub-ssh
+      published: https://yuvipanda.github.io/jupyterhub-ssh/
+    paths:
+      - ../setup.py
+      - ../jupyterhub_ssh
+    images:
+      jupyterhub:
+        # Context to send to docker build for use by the Dockerfile
+        contextPath: ..
+        # Dockerfile path relative to chartpress.yaml
+        dockerfilePath: images/jupyterhub-ssh/Dockerfile
+        valuesPath: image
+        # additional paths relevant to the image
+        # in addition to image directory itself
+        # paths are relative to build.py
+        paths:
+          - ../setup.py
+          - ../jupyterhub_ssh
