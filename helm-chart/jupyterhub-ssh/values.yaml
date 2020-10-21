@@ -5,14 +5,13 @@ replicaCount: 1
 
 image:
   repository: yuvipanda/jupyterhub-ssh-jupyterhub
-  tag: '0.0.1-n020.hdebd61f'
+  tag: '0.0.1-n022.h5a351df'
   pullPolicy: Always
 
   name: yuvipanda/jupyterhub-ssh-jupyterhub
 service:
-  type: LoadBalancer
+  type: ClusterIP
   port: 22
-  nodePort: 32222
 
 resources: {}
 
@@ -21,11 +20,3 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
-
-rbac:
-  enabled: true
-
-auth:
-  type: github
-  github:
-    allowedUsers: []

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "..fullname" . }}
+  name: jupyterhub-ssh
   labels:
     app: {{ template "..name" . }}
     chart: {{ template "..chart" . }}
@@ -22,16 +22,15 @@ spec:
         checksum/config-map: {{ include (print .Template.BasePath "/configmap.yaml") . | sha256sum }}
         checksum/secret: {{ include (print .Template.BasePath "/secret.yaml") . | sha256sum }}
     spec:
-      {{ if .Values.rbac.enabled }}
-      serviceAccountName: {{ template "..fullname" . }}
-      {{ end }}
+      # We don't need any interaction with k8s API
+      automountServiceAccountToken: false 
       volumes:
         - name: secrets
           secret:
-            secretName: {{ template "..fullname" . }}
+            secretName: jupyterhub-ssh
         - name: config
           configMap:
-            name: {{ template "..fullname" . }}
+            name: jupyterhub-ssh
       containers:
         - name: server
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
