@@ -1,0 +1,11 @@
+name: jupyterhub-ssh
+type: sphinx
+requirements_file: docs/requirements.txt
+python:
+  version: 3
+  pip_install: true
+formats:
+  - htmlzip
+  - pdf
+
+
