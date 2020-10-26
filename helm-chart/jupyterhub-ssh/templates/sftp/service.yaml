@@ -1,22 +1,24 @@
+{{ if .Values.sftp.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: jupyterhub-ssh
+  name: jupyterhub-sftp
   labels:
     app: {{ template "..name" . }}
     chart: {{ template "..chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.sftp.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: 8022
+    - port: {{ .Values.sftp.service.port }}
+      targetPort: 22
       protocol: TCP
-      name: ssh
-      {{ if eq .Values.service.type "NodePort" }}
-      nodePort: {{ .Values.service.nodePort }}
+      name: sftp
+      {{ if eq .Values.sftp.service.type "NodePort" }}
+      nodePort: {{ .Values.sftp.service.nodePort }}
       {{ end }}
   selector:
     app: {{ template "..name" . }}
     release: {{ .Release.Name }}
+{{- end }}

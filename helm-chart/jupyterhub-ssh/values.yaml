@@ -1,22 +1,56 @@
 # Required to run
 hostKey:
 
-replicaCount: 1
+ssh:
+  enabled: true
 
-image:
-  repository: yuvipanda/jupyterhub-ssh-jupyterhub
-  tag: '0.0.1-n023.h9c46a73'
-  pullPolicy: Always
+  replicaCount: 1
 
-  name: yuvipanda/jupyterhub-ssh-jupyterhub
-service:
-  type: ClusterIP
-  port: 22
+  image:
+    repository: yuvipanda/jupyterhub-ssh-ssh
+    tag: '0.0.1-n026.hf136ec7'
+    pullPolicy: Always
 
-resources: {}
+  service:
+    type: ClusterIP
+    port: 22
 
-nodeSelector: {}
+  resources: {}
 
-tolerations: []
+  labels:
+    hub.jupyter.org/network-access-proxy-http: "true"
 
-affinity: {}
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+
+
+sftp:
+  enabled: true
+  replicaCount: 1
+
+
+  pvc:
+    name:
+
+  image:
+    repository: yuvipanda/jupyterhub-ssh-sftp
+    tag: '0.0.1-n026.hf136ec7'
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 22
+
+  resources: {}
+
+  labels:
+    hub.jupyter.org/network-access-proxy-http: "true"
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}

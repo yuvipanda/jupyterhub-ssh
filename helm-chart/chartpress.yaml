@@ -8,12 +8,15 @@ charts:
       - ../setup.py
       - ../jupyterhub_ssh
     images:
-      jupyterhub:
+      sftp:
+        contextPath: ../jupyterhub-sftp
+        valuesPath: sftp.image
+      ssh:
         # Context to send to docker build for use by the Dockerfile
         contextPath: ..
         # Dockerfile path relative to chartpress.yaml
         dockerfilePath: images/jupyterhub-ssh/Dockerfile
-        valuesPath: image
+        valuesPath: ssh.image
         # additional paths relevant to the image
         # in addition to image directory itself
         # paths are relative to build.py

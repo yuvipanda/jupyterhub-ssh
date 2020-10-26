@@ -1,14 +1,15 @@
+{{ if .Values.sftp.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: jupyterhub-ssh
+  name: jupyterhub-sftp
   labels:
     app: {{ template "..name" . }}
     chart: {{ template "..chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.sftp.replicaCount }}
   selector:
     matchLabels:
       app: {{ template "..name" . }}
@@ -18,7 +19,8 @@ spec:
       labels:
         app: {{ template "..name" . }}
         release: {{ .Release.Name }}
-        component: ssh-server
+        component: sftp-server
+        hub.jupyter.org/network-access-hub: "true"
       annotations:
         checksum/config-map: {{ include (print .Template.BasePath "/configmap.yaml") . | sha256sum }}
         checksum/secret: {{ include (print .Template.BasePath "/secret.yaml") . | sha256sum }}
@@ -32,10 +34,15 @@ spec:
         - name: config
           configMap:
             name: jupyterhub-ssh
+        - name: home
+          persistentVolumeClaim:
+            claimName: {{ .Values.sftp.pvc.name }}
       containers:
         - name: server
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ .Values.sftp.image.repository }}:{{ .Values.sftp.image.tag }}"
+          imagePullPolicy: {{ .Values.sftp.image.pullPolicy }}
+          securityContext:
+            privileged: true
           volumeMounts:
             - name: secrets
               mountPath: /etc/jupyterhub-ssh/secrets
@@ -43,27 +50,30 @@ spec:
             - name: config
               mountPath: /etc/jupyterhub-ssh/config
               readOnly: true
+            - name: home
+              mountPath: /mnt/home
           ports:
-            - name: ssh
-              containerPort: 8022
+            - name: sftp
+              containerPort: 22
               protocol: TCP
           livenessProbe:
             tcpSocket:
-              port: ssh
+              port: sftp
           readinessProbe:
             tcpSocket:
-              port: ssh
+              port: sftp
           resources:
-{{ toYaml .Values.resources | indent 12 }}
-    {{- with .Values.nodeSelector }}
+{{ toYaml .Values.sftp.resources | indent 12 }}
+    {{- with .Values.sftp.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}
     {{- end }}
-    {{- with .Values.affinity }}
+    {{- with .Values.sftp.affinity }}
       affinity:
 {{ toYaml . | indent 8 }}
     {{- end }}
-    {{- with .Values.tolerations }}
+    {{- with .Values.sftp.tolerations }}
       tolerations:
 {{ toYaml . | indent 8 }}
     {{- end }}
+{{- end }}
