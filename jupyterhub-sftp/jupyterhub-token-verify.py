@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/venv/bin/python3
 """
 Verify that a JupyterHub token is valid for a given user
 
@@ -12,10 +12,7 @@ the very least, watch out for the following classes of vulnerabilities:
 
 1. Path Traversal Attacks - https://owasp.org/www-community/attacks/Path_Traversal
 2. Arbitrary code execution vulnerabilities in YAML
-3. Loading python libraries *not* owned by root. This script should *not*
-   be in a venv owned by anything other than root. Preferably, this should
-   just use debian packages.
-4. Sending hub tokens to arbitrary URLs, not just the configured hub
+3. Sending hub tokens to arbitrary URLs, not just the configured hub
 
 There's gonna be more, but really - just watch out!
 
@@ -61,6 +58,9 @@ import os
 import subprocess
 import requests
 from ruamel.yaml import YAML
+from escapism import escape
+import string
+from pathlib import PosixPath
 
 yaml = YAML(typ='safe')
 
@@ -77,18 +77,41 @@ def valid_user(hub_url, username, token):
     return resp.status_code == 200
 
 # Directory containing user home directories
-SRC_DIR = '/mnt/home'
+SRC_DIR = PosixPath('/mnt/home')
 # Directory sshd is exposing. We will bind-mount users there
-DEST_DIR = '/export/home'
+DEST_DIR = PosixPath('/export/home')
 
 def bind_mount_user(untrusted_username):
     # username is user controlled data, so should be treated more cautiously
     # It's been authenticated as valid by sshd, but that doesn't mean anything
-    # FIXME: Am pretty sure this is BAD
-    # FIXME: escape username?
-    src_path = os.path.abspath(os.path.join(SRC_DIR, untrusted_username))
-    dest_chroot_path = os.path.abspath(os.path.join(DEST_DIR, untrusted_username))
-    dest_bind_path = os.path.join(dest_chroot_path, untrusted_username)
+    # However, the untrusted username is what sshd will use as chroot, so we
+    # have to do our bind mounts there.
+    #
+
+    # In JupyterHub, we escape most file system naming interactions with this
+    # escapism call. This should also work here to make sure we mount the correct
+    # directory.
+    # FIXME: Verify usernames starting with '-' work fine with PAM & NSS
+    safe_chars = set(string.ascii_lowercase + string.digits)
+    source_username = escape(untrusted_username, safe=safe_chars, escape_char='-').lower()
+
+    # To protect against path traversal attacks, we:
+    # 1. Resolve our paths to absolute paths, traversing any symlinks if needed
+    # 2. Make sure that the absolote paths are within the source directories appropriately
+    # This prevents any relative path (..) or symlink attacks.
+    src_path = (SRC_DIR / source_username).resolve()
+
+    # Make sure src_path isn't outside of SRC_DIR
+    # And doesn't refer to other users' home directories
+    assert str(src_path.relative_to(SRC_DIR)) == source_username
+
+    dest_chroot_path = (DEST_DIR / untrusted_username).resolve()
+    # Make sure dest_chroot_path isn't outside of DEST_DIR
+    assert str(dest_chroot_path.relative_to(DEST_DIR)) == untrusted_username
+
+    dest_bind_path = (dest_chroot_path / untrusted_username).resolve()
+    # Make sure dest_bind_path isn't outside dest_chroot_path
+    assert str(dest_bind_path.relative_to(dest_chroot_path)) == untrusted_username
 
     if not os.path.exists(dest_chroot_path):
         os.makedirs(dest_chroot_path, exist_ok=True)
@@ -102,7 +125,6 @@ def bind_mount_user(untrusted_username):
 # We *must* treat this as untrusted. From `pam_exec`'s documentation:
 # >  Commands called by pam_exec need to be aware of that the user can have control over the environment.
 untrusted_username = os.environ['PAM_USER']
-# FIXME: Find a way to validate this to be a trusted username?
 
 # Password is a null delimited string, passed in via stdin by pam_exec
 password = sys.stdin.read().rstrip('\x00')
