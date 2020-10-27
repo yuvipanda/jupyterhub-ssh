@@ -56,12 +56,6 @@ spec:
             - name: sftp
               containerPort: 22
               protocol: TCP
-          livenessProbe:
-            tcpSocket:
-              port: sftp
-          readinessProbe:
-            tcpSocket:
-              port: sftp
           resources:
 {{ toYaml .Values.sftp.resources | indent 12 }}
     {{- with .Values.sftp.nodeSelector }}

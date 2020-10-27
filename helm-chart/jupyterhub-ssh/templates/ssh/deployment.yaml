@@ -49,12 +49,6 @@ spec:
             - name: ssh
               containerPort: 8022
               protocol: TCP
-          livenessProbe:
-            tcpSocket:
-              port: ssh
-          readinessProbe:
-            tcpSocket:
-              port: ssh
           resources:
 {{ toYaml .Values.ssh.resources | indent 12 }}
     {{- with .Values.ssh.nodeSelector }}
