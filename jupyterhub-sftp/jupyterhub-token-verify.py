@@ -53,16 +53,14 @@ controls ${USERNAME}. If we aren't careful, they can use it to have us
 give them read (and possibly write) access to *any* part of the filesystem.
 So we have to be very careful doing this.
 """
-import sys
 import os
-import subprocess
 import requests
-from ruamel.yaml import YAML
-from escapism import escape
 import string
-from pathlib import PosixPath
+import subprocess
+import sys
 
-yaml = YAML(typ='safe')
+from escapism import escape
+from pathlib import PosixPath
 
 def valid_user(hub_url, username, token):
     """
@@ -129,15 +127,7 @@ untrusted_username = os.environ['PAM_USER']
 # Password is a null delimited string, passed in via stdin by pam_exec
 password = sys.stdin.read().rstrip('\x00')
 
-# We read the config file *just* to get the hub URL
-# FIXME: Maybe get rid of the YAML dependency here?
-# FIXME: Make sure the file is owned by root & has proper perms!
-with open('/etc/jupyterhub-ssh/config/values.yaml') as f:
-    config = yaml.load(f)
-
-hub_url = config['hubUrl']
-
-if valid_user(hub_url, untrusted_username, password):
+if valid_user(os.environ["HUB_URL"], untrusted_username, password):
     # FIXME: We're doing a bind mount here based on an untrusted_username
     # THIS IS *SCARY* and we should do more work to ensure we aren't
     # accidentally exposing user data.

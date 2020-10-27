@@ -26,22 +26,22 @@ spec:
       # We don't need any interaction with k8s API
       automountServiceAccountToken: false 
       volumes:
-        - name: config
-          secret:
-            secretName: {{ include "jupyterhub-ssh.fullname" . }}
         - name: home
           persistentVolumeClaim:
             claimName: {{ .Values.sftp.pvc.name }}
       containers:
         - name: server
           image: "{{ .Values.sftp.image.repository }}:{{ .Values.sftp.image.tag | default .Chart.AppVersion }}"
+          env:
+            - name: HUB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "jupyterhub-ssh.fullname" . }}
+                  key: hubUrl
           imagePullPolicy: {{ .Values.sftp.image.pullPolicy }}
           securityContext:
             privileged: true
           volumeMounts:
-            - name: config
-              mountPath: /etc/jupyterhub-ssh/config
-              readOnly: true
             - name: home
               mountPath: /mnt/home
           ports:
