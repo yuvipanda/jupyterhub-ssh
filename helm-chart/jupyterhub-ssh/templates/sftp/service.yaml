@@ -1,4 +1,4 @@
-{{ if .Values.sftp.enabled }}
+{{- if .Values.sftp.enabled -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -12,9 +12,9 @@ spec:
       targetPort: 2222
       protocol: TCP
       name: sftp
-      {{ if eq .Values.sftp.service.type "NodePort" }}
+      {{- if eq .Values.sftp.service.type "NodePort" }}
       nodePort: {{ .Values.sftp.service.nodePort }}
-      {{ end }}
+      {{- end }}
   selector:
     {{- include "jupyterhub-ssh.sftp.selectorLabels" . | nindent 4 }}
 {{- end }}

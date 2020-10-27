@@ -1,4 +1,4 @@
-{{ if .Values.sftp.enabled }}
+{{- if .Values.sftp.enabled -}}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -20,9 +20,10 @@ spec:
       port: 53
   # FIXME: This is way too permissive
   - to:
-      - ipBlock:
-          cidr: 0.0.0.0/0
+    - ipBlock:
+        cidr: 0.0.0.0/0
   ingress:
+  # Allow pods in the same namespace with this label to have network access
   - from:
     - podSelector:
         matchLabels:

@@ -6,4 +6,4 @@ metadata:
     {{- include "jupyterhub-ssh.labels" . | nindent 4 }}
 data:
   values.yaml: |
-    {{ .Values | toYaml | nindent 4 }}
+    {{- .Values | toYaml | nindent 4 }}
