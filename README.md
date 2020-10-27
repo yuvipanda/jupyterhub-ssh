@@ -1,4 +1,4 @@
-# JupyterHubSSH
+# JupyterHub SSH
 
 [![Documentation build status](https://img.shields.io/readthedocs/jupyterhub?logo=read-the-docs)](https://jupyterhub-ssh.readthedocs.io/en/latest/)
 
