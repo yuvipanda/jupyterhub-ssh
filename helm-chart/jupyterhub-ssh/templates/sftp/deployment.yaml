@@ -54,7 +54,7 @@ spec:
               mountPath: /mnt/home
           ports:
             - name: sftp
-              containerPort: 22
+              containerPort: 2222
               protocol: TCP
           resources:
 {{ toYaml .Values.sftp.resources | indent 12 }}

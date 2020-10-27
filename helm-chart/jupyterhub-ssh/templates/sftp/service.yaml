@@ -12,7 +12,7 @@ spec:
   type: {{ .Values.sftp.service.type }}
   ports:
     - port: {{ .Values.sftp.service.port }}
-      targetPort: 22
+      targetPort: 2222
       protocol: TCP
       name: sftp
       {{ if eq .Values.sftp.service.type "NodePort" }}
