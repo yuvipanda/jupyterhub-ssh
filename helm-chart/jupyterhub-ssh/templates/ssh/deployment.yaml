@@ -16,18 +16,14 @@ spec:
         {{- include "jupyterhub-ssh.ssh.labels" . | nindent 8 }}
         hub.jupyter.org/network-access-hub: "true"
       annotations:
-        checksum/config-map: {{ include (print .Template.BasePath "/configmap.yaml") . | sha256sum }}
-        checksum/secret: {{ include (print .Template.BasePath "/secret.yaml") . | sha256sum }}
+        checksum/config: {{ include (print .Template.BasePath "/secret.yaml") . | sha256sum }}
     spec:
       # We don't need any interaction with k8s API
       automountServiceAccountToken: false 
       volumes:
-        - name: secrets
+        - name: config
           secret:
             secretName: {{ include "jupyterhub-ssh.fullname" . }}
-        - name: config
-          configMap:
-            name: {{ include "jupyterhub-ssh.fullname" . }}
       containers:
         - name: server
           image: "{{ .Values.ssh.image.repository }}:{{ .Values.ssh.image.tag }}"
@@ -36,9 +32,6 @@ spec:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
           volumeMounts:
-            - name: secrets
-              mountPath: /etc/jupyterhub-ssh/secrets
-              readOnly: true
             - name: config
               mountPath: /etc/jupyterhub-ssh/config
               readOnly: true
