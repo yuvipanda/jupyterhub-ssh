@@ -5,6 +5,13 @@ metadata:
   name: {{ include "jupyterhub-ssh.sftp.fullname" . }}
   labels:
     {{- include "jupyterhub-ssh.sftp.labels" . | nindent 4 }}
+    {{- with .Values.sftp.serviceLabels }}
+    {{- . | toYaml | nindent 4 }}
+    {{- end }}
+  {{- with .Values.sftp.serviceAnnotations }}
+  annotations:
+    {{- . | toYaml | nindent 4 }}
+  {{- end }}
 spec:
   type: {{ .Values.sftp.service.type }}
   ports:

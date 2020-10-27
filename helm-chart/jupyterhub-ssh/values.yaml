@@ -1,6 +1,9 @@
 # Required to run
-hubUrl:
-hostKey:
+hubUrl: ""
+hostKey: ""
+
+nameOverride: ""
+fullnameOverride: ""
 
 ssh:
   enabled: true
@@ -15,15 +18,16 @@ ssh:
     type: ClusterIP
     port: 22
 
-  resources: {}
-
-  labels:
+  podLabels:
+    hub.jupyter.org/network-access-hub: "true"
     hub.jupyter.org/network-access-proxy-http: "true"
+  podAnnotations: {}
+  serviceLabels: {}
+  serviceAnnotations: {}
 
+  resources: {}
   nodeSelector: {}
-
   tolerations: []
-
   affinity: {}
 
 
@@ -33,24 +37,25 @@ sftp:
   replicaCount: 1
 
   pvc:
-    name:
+    name: ""
 
   image:
     repository: yuvipanda/jupyterhub-ssh-sftp
-    tag: '0.0.1-n026.hf136ec7'
+    tag: "0.0.1-n026.hf136ec7"
     pullPolicy: Always
 
   service:
     type: ClusterIP
     port: 22
 
-  resources: {}
-
-  labels:
+  podLabels:
+    hub.jupyter.org/network-access-hub: "true"
     hub.jupyter.org/network-access-proxy-http: "true"
+  podAnnotations: {}
+  serviceLabels: {}
+  serviceAnnotations: {}
 
+  resources: {}
   nodeSelector: {}
-
   tolerations: []
-
   affinity: {}

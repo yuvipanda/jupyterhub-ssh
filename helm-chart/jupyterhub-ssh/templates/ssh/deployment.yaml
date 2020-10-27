@@ -14,9 +14,14 @@ spec:
     metadata:
       labels:
         {{- include "jupyterhub-ssh.ssh.labels" . | nindent 8 }}
-        hub.jupyter.org/network-access-hub: "true"
+        {{- with .Values.ssh.podLabels }}
+        {{- . | toYaml | nindent 8 }}
+        {{- end }}
       annotations:
         checksum/config: {{ omit .Values "sftp" | toYaml | sha256sum }}
+        {{- with .Values.ssh.podAnnotations }}
+        {{- . | toYaml | nindent 8 }}
+        {{- end }}
     spec:
       # We don't need any interaction with k8s API
       automountServiceAccountToken: false 

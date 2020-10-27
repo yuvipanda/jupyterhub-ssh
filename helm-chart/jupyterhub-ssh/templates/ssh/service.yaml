@@ -5,6 +5,13 @@ metadata:
   name: {{ include "jupyterhub-ssh.ssh.fullname" . }}
   labels:
     {{- include "jupyterhub-ssh.ssh.labels" . | nindent 4 }}
+    {{- with .Values.ssh.serviceLabels }}
+    {{- . | toYaml | nindent 4 }}
+    {{- end }}
+  {{- with .Values.ssh.serviceAnnotations }}
+  annotations:
+    {{- . | toYaml | nindent 4 }}
+  {{- end }}
 spec:
   type: {{ .Values.ssh.service.type }}
   ports:
