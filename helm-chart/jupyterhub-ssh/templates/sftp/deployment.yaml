@@ -16,7 +16,7 @@ spec:
         {{- include "jupyterhub-ssh.sftp.labels" . | nindent 8 }}
         hub.jupyter.org/network-access-hub: "true"
       annotations:
-        checksum/config: {{ include (print .Template.BasePath "/secret.yaml") . | sha256sum }}
+        checksum/config: {{ omit .Values "ssh" | toYaml | sha256sum }}
     spec:
       # We don't need any interaction with k8s API
       automountServiceAccountToken: false 

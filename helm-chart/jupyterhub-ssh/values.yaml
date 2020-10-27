@@ -4,7 +4,6 @@ hostKey:
 
 ssh:
   enabled: true
-
   replicaCount: 1
 
   image:
@@ -33,7 +32,6 @@ sftp:
   enabled: true
   replicaCount: 1
 
-
   pvc:
     name:
 
@@ -41,6 +39,7 @@ sftp:
     repository: yuvipanda/jupyterhub-ssh-sftp
     tag: '0.0.1-n026.hf136ec7'
     pullPolicy: Always
+
   service:
     type: ClusterIP
     port: 22
