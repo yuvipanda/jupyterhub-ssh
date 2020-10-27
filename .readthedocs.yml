@@ -7,7 +7,7 @@ version: 2
 
 # Build documentation in the docs/source directory with Sphinx
 sphinx:
-  configuration: doc/source/conf.py
+  configuration: docs/source/conf.py
 
 # Explicitly leave out PDF, ePub, htmlzip, etc so that we don't run into errors
 # building our html based documentation which is whats really important.
