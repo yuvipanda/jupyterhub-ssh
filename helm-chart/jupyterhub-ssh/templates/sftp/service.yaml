@@ -8,10 +8,10 @@ metadata:
 spec:
   type: {{ .Values.sftp.service.type }}
   ports:
-    - port: {{ .Values.sftp.service.port }}
-      targetPort: 2222
+    - name: sftp
+      port: {{ .Values.sftp.service.port }}
+      targetPort: sftp
       protocol: TCP
-      name: sftp
       {{- if eq .Values.sftp.service.type "NodePort" }}
       nodePort: {{ .Values.sftp.service.nodePort }}
       {{- end }}
