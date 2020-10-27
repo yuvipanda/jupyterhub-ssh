@@ -46,6 +46,10 @@ spec:
               protocol: TCP
           resources:
             {{- .Values.ssh.resources | toYaml | nindent 12 }}
+      {{- with .Values.ssh.imagePullSecrets }}
+      imagePullSecrets:
+        {{- . | toYaml | nindent 8 }}
+      {{- end }}
       {{- with .Values.ssh.nodeSelector }}
       nodeSelector:
         {{- . | toYaml | nindent 8 }}

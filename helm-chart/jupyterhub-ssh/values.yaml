@@ -26,6 +26,7 @@ ssh:
   serviceAnnotations: {}
 
   resources: {}
+  imagePullSecrets: []
   nodeSelector: {}
   tolerations: []
   affinity: {}
@@ -56,6 +57,7 @@ sftp:
   serviceAnnotations: {}
 
   resources: {}
+  imagePullSecrets: []
   nodeSelector: {}
   tolerations: []
   affinity: {}

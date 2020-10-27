@@ -50,6 +50,10 @@ spec:
               protocol: TCP
           resources:
             {{- .Values.sftp.resources | toYaml | nindent 12 }}
+      {{- with .Values.sftp.imagePullSecrets }}
+      imagePullSecrets:
+        {{- . | toYaml | nindent 8 }}
+      {{- end }}
       {{- with .Values.sftp.nodeSelector }}
       nodeSelector:
         {{- . | toYaml | nindent 8 }}
