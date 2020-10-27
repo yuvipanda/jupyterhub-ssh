@@ -22,7 +22,7 @@ JupyterHubSSH is made up of two main components:
 ``` bash
 $ git clone https://github.com/yuvipanda/jupyterhub-ssh.git
 $ cd jupyterhub-ssh
-$ pip install .
+$ pip install -e .
 ```
 1. Or install the package directly:
 ``` bash
