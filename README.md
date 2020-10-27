@@ -19,40 +19,40 @@ JupyterHubSSH is made up of two main components:
 ## Installation
 
 1. Clone the repo and install the jupyterhub-ssh package:
-``` bash
-$ git clone https://github.com/yuvipanda/jupyterhub-ssh.git
-$ cd jupyterhub-ssh
-$ pip install -e .
-```
+	``` bash
+	$ git clone https://github.com/yuvipanda/jupyterhub-ssh.git
+	$ cd jupyterhub-ssh
+	$ pip install -e .
+	```
 1. Or install the package directly:
-``` bash
-pip install git+https://github.com/yuvipanda/jupyterhub-ssh.git
-```
+	``` bash
+	$ pip install git+https://github.com/yuvipanda/jupyterhub-ssh.git
+	```
 
 2. Create the config file:
-```bash
-$ touch jupyterhub_ssh_config.py
-```
+	```bash
+	$ touch jupyterhub_ssh_config.py
+	```
 
 3. Put in the config file at least the following two config options:
-* `c.JupyterHubSSH.hub_url`: URL of JupyterHub to connect to.
-* `c.JupyterHubSSH.host_key_path`: Path to host's private SSH Key.
+	* `c.JupyterHubSSH.hub_url`: URL of JupyterHub to connect to.
+	* `c.JupyterHubSSH.host_key_path`: Path to host's private SSH Key.
 
 	More configuration options can be found in the docs [here](https://jupyterhub-ssh.readthedocs.io/en/latest/api/index.html#module-jupyterhub_ssh).
 
 5. Start the JupyterHubSSH app from the directory where the config file
 `jupyterhub_ssh_config.py` is located:
-```bash
-$ python -m jupyterhub_ssh
-```
+	```bash
+	$ python -m jupyterhub_ssh
+	```
 
 ## Instructions on how to use it
 
 1. Login into your JupyterHub and go to `https://<hub-address>/hub/token`.
 2. Copy the token from JupyterHub.
 3. SSH into JupyterHub:
-```bash
-$ ssh <username-you-used>@<hub-address>
-```
+	```bash
+	$ ssh <username-you-used>@<hub-address>
+	```
 4. Enter the token received from JupyterHub as a password.
 5. TADA :tada:
