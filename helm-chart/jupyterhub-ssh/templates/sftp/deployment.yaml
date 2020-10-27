@@ -29,7 +29,7 @@ spec:
             claimName: {{ .Values.sftp.pvc.name }}
       containers:
         - name: server
-          image: "{{ .Values.sftp.image.repository }}:{{ .Values.sftp.image.tag }}"
+          image: "{{ .Values.sftp.image.repository }}:{{ .Values.sftp.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.sftp.image.pullPolicy }}
           securityContext:
             privileged: true
