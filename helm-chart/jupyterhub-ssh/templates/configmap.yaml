@@ -1,12 +1,9 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: jupyterhub-ssh
+  name: {{ include "jupyterhub-ssh.fullname" . }}
   labels:
-    app: {{ template "..name" . }}
-    chart: {{ template "..chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "jupyterhub-ssh.labels" . | nindent 4 }}
 data:
   values.yaml: |
     {{ .Values | toYaml | nindent 4 }}

@@ -2,24 +2,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: jupyterhub-ssh
+  name: {{ include "jupyterhub-ssh.ssh.fullname" . }}
   labels:
-    app: {{ template "..name" . }}
-    chart: {{ template "..chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "jupyterhub-ssh.ssh.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.ssh.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "..name" . }}
-      release: {{ .Release.Name }}
+      {{- include "jupyterhub-ssh.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: {{ template "..name" . }}
-        release: {{ .Release.Name }}
-        component: ssh-server
+        {{- include "jupyterhub-ssh.ssh.labels" . | nindent 8 }}
         hub.jupyter.org/network-access-hub: "true"
       annotations:
         checksum/config-map: {{ include (print .Template.BasePath "/configmap.yaml") . | sha256sum }}
@@ -30,10 +24,10 @@ spec:
       volumes:
         - name: secrets
           secret:
-            secretName: jupyterhub-ssh
+            secretName: {{ include "jupyterhub-ssh.fullname" . }}
         - name: config
           configMap:
-            name: jupyterhub-ssh
+            name: {{ include "jupyterhub-ssh.fullname" . }}
       containers:
         - name: server
           image: "{{ .Values.ssh.image.repository }}:{{ .Values.ssh.image.tag }}"
