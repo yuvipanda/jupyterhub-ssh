@@ -38,6 +38,9 @@ spec:
         - name: server
           image: "{{ .Values.ssh.image.repository }}:{{ .Values.ssh.image.tag }}"
           imagePullPolicy: {{ .Values.ssh.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
           volumeMounts:
             - name: secrets
               mountPath: /etc/jupyterhub-ssh/secrets
