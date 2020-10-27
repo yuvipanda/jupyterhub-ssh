@@ -37,6 +37,8 @@ sftp:
   enabled: true
   replicaCount: 1
 
+  # Not yet implemented. If we want this though, we should probably make sftp a
+  # statefulset!
   pvc:
     name: ""
 
