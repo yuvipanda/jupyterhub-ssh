@@ -35,5 +35,5 @@ COPY sshd_config /etc/ssh/sshd_config
 
 RUN mkdir -p /export/home
 
-EXPOSE 22
+EXPOSE 2222
 CMD ["/usr/sbin/sshd", "-De"]
