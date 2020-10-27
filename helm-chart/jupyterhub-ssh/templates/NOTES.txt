@@ -1,0 +1,1 @@
+{{ $dummy := .Values.hubUrl | required "hubUrl must be set to a valid JupyterHub URL" }}
