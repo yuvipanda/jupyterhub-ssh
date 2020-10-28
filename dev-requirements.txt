@@ -1,3 +1,7 @@
 chartpress
 pytest
 pyyaml
+pytest-asyncio
+notebook
+aiohttp
+yarl
