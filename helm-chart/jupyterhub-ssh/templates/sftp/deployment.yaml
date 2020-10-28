@@ -38,6 +38,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "jupyterhub-ssh.fullname" . }}
                   key: hubUrl
+            - name: HOST_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "jupyterhub-ssh.fullname" . }}
+                  key: hostKey
           imagePullPolicy: {{ .Values.sftp.image.pullPolicy }}
           securityContext:
             privileged: true
