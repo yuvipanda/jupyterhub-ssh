@@ -70,10 +70,10 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 
 {{- define "jupyterhub-ssh.sftp.selectorLabels" -}}
 {{ include "jupyterhub-ssh.selectorLabels" . }}
-app.kubernetes.io/component: sftp-server
+app.kubernetes.io/component: sftp
 {{- end }}
 
 {{- define "jupyterhub-ssh.ssh.selectorLabels" -}}
 {{ include "jupyterhub-ssh.selectorLabels" . }}
-app.kubernetes.io/component: ssh-server
+app.kubernetes.io/component: ssh
 {{- end }}
