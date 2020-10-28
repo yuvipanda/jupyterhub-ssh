@@ -40,6 +40,7 @@ spec:
             items:
               - key: hostKey
                 path: hostKey
+                mode: 0400
               - key: hubUrl
                 path: hubUrl
       containers:
