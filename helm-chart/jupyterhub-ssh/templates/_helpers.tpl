@@ -24,11 +24,11 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 
 {{- define "jupyterhub-ssh.sftp.fullname" -}}
-{{ include "jupyterhub-ssh.fullname" . }}-sftp-server
+{{ include "jupyterhub-ssh.fullname" . }}-sftp
 {{- end }}
 
 {{- define "jupyterhub-ssh.ssh.fullname" -}}
-{{ include "jupyterhub-ssh.fullname" . }}-ssh-server
+{{ include "jupyterhub-ssh.fullname" . }}-ssh
 {{- end }}
 
 {{/*
@@ -52,12 +52,12 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 
 {{- define "jupyterhub-ssh.sftp.labels" -}}
 {{ include "jupyterhub-ssh.labels" . }}
-app.kubernetes.io/component: sftp-server
+app.kubernetes.io/component: sftp
 {{- end }}
 
 {{- define "jupyterhub-ssh.ssh.labels" -}}
 {{ include "jupyterhub-ssh.labels" . }}
-app.kubernetes.io/component: ssh-server
+app.kubernetes.io/component: ssh
 {{- end }}
 
 {{/*
