@@ -53,6 +53,7 @@ spec:
               mountPath: /mnt/home
             - name: config
               mountPath: /etc/jupyterhub-sftp/config
+              readOnly: true
           ports:
             - name: sftp
               containerPort: 2222
