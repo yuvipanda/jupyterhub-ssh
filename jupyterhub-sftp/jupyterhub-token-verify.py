@@ -127,7 +127,10 @@ untrusted_username = os.environ['PAM_USER']
 # Password is a null delimited string, passed in via stdin by pam_exec
 password = sys.stdin.read().rstrip('\x00')
 
-if valid_user(os.environ["HUB_URL"], untrusted_username, password):
+with open('/etc/jupyterhub-sftp/config/hubUrl', 'r') as f:
+    hub_url = f.read()
+
+if valid_user(hub_url, untrusted_username, password):
     # FIXME: We're doing a bind mount here based on an untrusted_username
     # THIS IS *SCARY* and we should do more work to ensure we aren't
     # accidentally exposing user data.

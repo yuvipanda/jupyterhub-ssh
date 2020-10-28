@@ -17,9 +17,8 @@ Port 2222
 #ListenAddress 0.0.0.0
 #ListenAddress ::
 
-#HostKey /etc/ssh/ssh_host_rsa_key
-#HostKey /etc/ssh/ssh_host_ecdsa_key
-#HostKey /etc/ssh/ssh_host_ed25519_key
+# This file is assumed to be mounted to the Docker container
+HostKey /etc/jupyterhub-sftp/config/hostKey
 
 # Ciphers and keying
 #RekeyLimit default none

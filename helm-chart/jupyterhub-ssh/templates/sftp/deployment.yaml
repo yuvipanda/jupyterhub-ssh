@@ -29,26 +29,30 @@ spec:
         - name: home
           persistentVolumeClaim:
             claimName: {{ .Values.sftp.pvc.name }}
+        # Selects only parts of the k8s Secret as a Volume. Note that we can
+        # also specify a mode for individual files at this point, for example to
+        # make the hostKey read only in the file system.
+        #
+        # ref: https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretvolumesource-v1-core
+        - name: config
+          secret:
+            secretName: {{ include "jupyterhub-ssh.fullname" . }}
+            items:
+              - key: hostKey
+                path: hostKey
+              - key: hubUrl
+                path: hubUrl
       containers:
         - name: server
           image: "{{ .Values.sftp.image.repository }}:{{ .Values.sftp.image.tag | default .Chart.AppVersion }}"
-          env:
-            - name: HUB_URL
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "jupyterhub-ssh.fullname" . }}
-                  key: hubUrl
-            - name: HOST_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "jupyterhub-ssh.fullname" . }}
-                  key: hostKey
           imagePullPolicy: {{ .Values.sftp.image.pullPolicy }}
           securityContext:
             privileged: true
           volumeMounts:
             - name: home
               mountPath: /mnt/home
+            - name: config
+              mountPath: /etc/jupyterhub-sftp/config
           ports:
             - name: sftp
               containerPort: 2222
