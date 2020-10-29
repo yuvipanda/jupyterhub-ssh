@@ -62,13 +62,13 @@ directly into your Kubernetes cluster.
 	```bash
 	# Let helm the command line tool know about a Helm chart repository
 	# that we decide to name jupyterhub.
-	$ helm repo add jupyterhub https://yuvipanda.github.io/jupyterhub-ssh/
+	$ helm repo add jupyterhub-ssh https://yuvipanda.github.io/jupyterhub-ssh/
 	$ helm repo update
 
 	# Simplified example on how to install a Helm chart from a Helm chart repository
 	# named jupyterhub-ssh. See the Helm chart's documentation for additional details
 	# required.
-	$ helm install jupyterhub-ssh/<helm chart name> --version <helm chart version>
+	$ helm install jupyterhub-ssh/jupyterhub-ssh --version <helm chart version> --set hubUrl=https://jupyter.example.org --set-file hostKey=<path to a private SSH key>
 	```
 
 ## How to use it
@@ -91,9 +91,7 @@ unavailable.
 3. Transfer file into Jupyterhub:
 	* Using the `sftp` command:
 		```bash
-		$ sftp -oPort=2222 <hub-username>@<hub-address>
+		$ sftp <hub-username>@<hub-address>
 		```
-	* Using a GUI program for SFTP:
-		Remember to explicitly specify into the program the port `2222`, where the `sftp` service is running.
 4. Enter the token received from JupyterHub as a password.
 5. TADA :tada: Now you can transfer files to and from your home directory on the hubs.
