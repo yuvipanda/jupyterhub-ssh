@@ -1,22 +1,31 @@
-# JupyterHub SSH
+# JupyterHub SSH and SFTP
 
 [![Documentation build status](https://img.shields.io/readthedocs/jupyterhub?logo=read-the-docs)](https://jupyterhub-ssh.readthedocs.io/en/latest/)
 
-SSH Access to JupyterHubs, independent of the way there were deployed.
+Access through [SSH](https://www.ssh.com/ssh) any JupyterHub, regardless how it was deployed and easily transfer files through [SFTP](https://www.ssh.com/ssh/sftp).
 
 ## Development Status
 This project is under active develpoment :tada:, so expect a few changes along the way.
 
 ## Technical Overview
 
-JupyterHubSSH is made up of two main components:
+The JupyterHubSSH service is used for SSH access to your hub. `JupyterHubSSH` is made up of two main components:
 
 - an SSH server that maps a SSH connection to a Notebook server on a JupyterHub.
 - a [Terminado](https://github.com/jupyter/terminado) client that knows how to connect and communicate to a Jupyter terminal.
 
 ![Overview](https://raw.githubusercontent.com/yuvipanda/jupyterhub-ssh/main/docs/source/_static/images/technical-overview.png)
 
+Apart from SSH access to JupyterHub, once `jupyterhub-ssh` was deployed, you can also use it to tranfer files from your local
+home directory into your remote hub home directory. This is achieved through `jupyterhub-sftp`, a service that provides a SFTP
+setup using [OpenSSH](https://www.openssh.com/). `jupyterhub-sftp` currently supports only [NFS](https://tldp.org/LDP/nag/node140.html)
+based home directories.
+
 ## Installation
+
+Instructions on how to install and deploy JupyterHub SSH & SFTP services.
+
+### Regular deployment
 
 1. Clone the repo and install the jupyterhub-ssh package:
 	``` bash
@@ -46,8 +55,25 @@ JupyterHubSSH is made up of two main components:
 	$ python -m jupyterhub_ssh
 	```
 
-## Instructions on how to use it
+### Kuberbetes based deployment
+If your JupyterHub was deployed using Kubernetes, you can use the Helm charts available in this repo to deploy JupyterHub SSH & SFTP
+directly into your Kubernetes cluster.
 
+	```bash
+	# Let helm the command line tool know about a Helm chart repository
+	# that we decide to name jupyterhub.
+	$ helm repo add jupyterhub https://yuvipanda.github.io/jupyterhub-ssh/
+	$ helm repo update
+
+	# Simplified example on how to install a Helm chart from a Helm chart repository
+	# named jupyterhub-ssh. See the Helm chart's documentation for additional details
+	# required.
+	$ helm install jupyterhub-ssh/<helm chart name> --version <helm chart version>
+	```
+
+## How to use it
+
+### How to SSH
 1. Login into your JupyterHub and go to `https://<hub-address>/hub/token`.
 2. Copy the token from JupyterHub.
 3. SSH into JupyterHub:
@@ -55,4 +81,19 @@ JupyterHubSSH is made up of two main components:
 	$ ssh <username-you-used>@<hub-address>
 	```
 4. Enter the token received from JupyterHub as a password.
-5. TADA :tada:
+5. TADA :tada: Now you have an interactive terminal! You can do anything you would generally interactively do via ssh: run editors,
+fully interactive programs, use the commandline, etc. Some features like non-interactive command running, tunneling, etc are currently
+unavailable.
+
+### How to SFTP
+1. Login into your JupyterHub and go to `https://<hub-address>/hub/token`.
+2. Copy the token from JupyterHub.
+3. Transfer file into Jupyterhub:
+	* Using the `sftp` command:
+		```bash
+		$ sftp -oPort=2222 <hub-username>@<hub-address>
+		```
+	* Using a GUI program for SFTP:
+		Remember to explicitly specify into the program the port `2222`, where the `sftp` service is running.
+4. Enter the token received from JupyterHub as a password.
+5. TADA :tada: Now you can transfer files to and from your home directory on the hubs.
