@@ -1,20 +1,21 @@
 {{/*
-Expand the name of the chart.
+name is used to set the app.kubernetes.io/name label and influences the fullname
+function if fullnameOverride isn't specified.
 */}}
 {{- define "jupyterhub-ssh.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- .Values.nameOverride | default .Chart.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
-Create a default fully qualified app name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-If release name contains chart name it will be used as a full name.
+fullname is used to name k8s resources either directly based on fullnameOverride,
+or by combining the helm release name with the chart name. If the release name
+contains the chart name, the chart name won't be repeated.
 */}}
 {{- define "jupyterhub-ssh.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- $name := .Values.nameOverride | default .Chart.Name }}
 {{- if contains $name .Release.Name }}
 {{- .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -32,14 +33,14 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 
 {{/*
-Create chart name and version as used by the chart label.
+chart is used to set the helm.sh/chart label.
 */}}
 {{- define "jupyterhub-ssh.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
-Common labels
+labels are selectorLabels and other common labels k8s resources get
 */}}
 {{- define "jupyterhub-ssh.labels" -}}
 helm.sh/chart: {{ include "jupyterhub-ssh.chart" . }}
@@ -61,7 +62,12 @@ app.kubernetes.io/component: ssh
 {{- end }}
 
 {{/*
-Selector labels
+selectorLabels are used to taget specific resources, such as how Services and
+Deployment resources target Pods. Changes to this will be breaking changes.
+Deployment's matchLabels field are for example immutable and will require the
+resource to be recreated. Handling breaking changes was quite easy to do with
+`helm2 upgrade --force` but require manual intervention in `helm3 upgrade` by
+manually deleting the Deployment resources first.
 */}}
 {{- define "jupyterhub-ssh.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "jupyterhub-ssh.name" . }}
