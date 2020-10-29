@@ -1,73 +1,80 @@
-{{ if .Values.sftp.enabled }}
+{{- if .Values.sftp.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: jupyterhub-sftp
+  name: {{ include "jupyterhub-ssh.sftp.fullname" . }}
   labels:
-    app: {{ template "..name" . }}
-    chart: {{ template "..chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "jupyterhub-ssh.sftp.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.sftp.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "..name" . }}
-      release: {{ .Release.Name }}
+      {{- include "jupyterhub-ssh.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: {{ template "..name" . }}
-        release: {{ .Release.Name }}
-        component: sftp-server
-        hub.jupyter.org/network-access-hub: "true"
+        {{- include "jupyterhub-ssh.sftp.labels" . | nindent 8 }}
+        {{- with .Values.sftp.podLabels }}
+        {{- . | toYaml | nindent 8 }}
+        {{- end }}
       annotations:
-        checksum/config-map: {{ include (print .Template.BasePath "/configmap.yaml") . | sha256sum }}
-        checksum/secret: {{ include (print .Template.BasePath "/secret.yaml") . | sha256sum }}
+        checksum/config: {{ omit .Values "ssh" | toYaml | sha256sum }}
+        {{- with .Values.sftp.podAnnotations }}
+        {{- . | toYaml | nindent 8 }}
+        {{- end }}
     spec:
       # We don't need any interaction with k8s API
       automountServiceAccountToken: false 
       volumes:
-        - name: secrets
-          secret:
-            secretName: jupyterhub-ssh
-        - name: config
-          configMap:
-            name: jupyterhub-ssh
         - name: home
           persistentVolumeClaim:
             claimName: {{ .Values.sftp.pvc.name }}
+        # Selects only parts of the k8s Secret as a Volume. Note that we can
+        # also specify a mode for individual files at this point, for example to
+        # make the hostKey read only in the file system.
+        #
+        # ref: https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretvolumesource-v1-core
+        - name: config
+          secret:
+            secretName: {{ include "jupyterhub-ssh.fullname" . }}
+            items:
+              - key: hostKey
+                path: hostKey
+                mode: 0400
+              - key: hubUrl
+                path: hubUrl
       containers:
         - name: server
-          image: "{{ .Values.sftp.image.repository }}:{{ .Values.sftp.image.tag }}"
+          image: "{{ .Values.sftp.image.repository }}:{{ .Values.sftp.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.sftp.image.pullPolicy }}
           securityContext:
             privileged: true
           volumeMounts:
-            - name: secrets
-              mountPath: /etc/jupyterhub-ssh/secrets
-              readOnly: true
-            - name: config
-              mountPath: /etc/jupyterhub-ssh/config
-              readOnly: true
             - name: home
               mountPath: /mnt/home
+            - name: config
+              mountPath: /etc/jupyterhub-sftp/config
+              readOnly: true
           ports:
             - name: sftp
               containerPort: 2222
               protocol: TCP
           resources:
-{{ toYaml .Values.sftp.resources | indent 12 }}
-    {{- with .Values.sftp.nodeSelector }}
+            {{- .Values.sftp.resources | toYaml | nindent 12 }}
+      {{- with .Values.sftp.imagePullSecrets }}
+      imagePullSecrets:
+        {{- . | toYaml | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sftp.nodeSelector }}
       nodeSelector:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.sftp.affinity }}
+        {{- . | toYaml | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sftp.affinity }}
       affinity:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.sftp.tolerations }}
+        {{- . | toYaml | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sftp.tolerations }}
       tolerations:
-{{ toYaml . | indent 8 }}
-    {{- end }}
+        {{- . | toYaml | nindent 8 }}
+      {{- end }}
 {{- end }}

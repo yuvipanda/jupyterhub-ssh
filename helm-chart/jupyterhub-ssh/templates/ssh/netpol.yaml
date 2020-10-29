@@ -1,17 +1,14 @@
-{{ if .Values.ssh.enabled }}
+{{- if .Values.ssh.enabled -}}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: jupyterhub-ssh
+  name: {{ include "jupyterhub-ssh.ssh.fullname" . }}
   labels:
-    app: {{ template "..name" . }}
-    release: {{ .Release.Name }}
+    {{- include "jupyterhub-ssh.ssh.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
-      app: {{ template "..name" . }}
-      release: {{ .Release.Name }}
-      component: ssh-server
+      {{- include "jupyterhub-ssh.ssh.selectorLabels" . | nindent 6 }}
   policyTypes:
   - Ingress
   - Egress
@@ -23,9 +20,10 @@ spec:
       port: 53
   # FIXME: This is way too permissive
   - to:
-      - ipBlock:
-          cidr: 0.0.0.0/0
+    - ipBlock:
+        cidr: 0.0.0.0/0
   ingress:
+  # Allow pods in the same namespace with this label to have network access
   - from:
     - podSelector:
         matchLabels:

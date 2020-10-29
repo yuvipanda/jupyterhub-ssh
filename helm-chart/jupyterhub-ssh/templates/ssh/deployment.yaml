@@ -1,50 +1,42 @@
-{{ if .Values.ssh.enabled }}
+{{- if .Values.ssh.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: jupyterhub-ssh
+  name: {{ include "jupyterhub-ssh.ssh.fullname" . }}
   labels:
-    app: {{ template "..name" . }}
-    chart: {{ template "..chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "jupyterhub-ssh.ssh.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.ssh.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "..name" . }}
-      release: {{ .Release.Name }}
+      {{- include "jupyterhub-ssh.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: {{ template "..name" . }}
-        release: {{ .Release.Name }}
-        component: ssh-server
-        hub.jupyter.org/network-access-hub: "true"
+        {{- include "jupyterhub-ssh.ssh.labels" . | nindent 8 }}
+        {{- with .Values.ssh.podLabels }}
+        {{- . | toYaml | nindent 8 }}
+        {{- end }}
       annotations:
-        checksum/config-map: {{ include (print .Template.BasePath "/configmap.yaml") . | sha256sum }}
-        checksum/secret: {{ include (print .Template.BasePath "/secret.yaml") . | sha256sum }}
+        checksum/config: {{ omit .Values "sftp" | toYaml | sha256sum }}
+        {{- with .Values.ssh.podAnnotations }}
+        {{- . | toYaml | nindent 8 }}
+        {{- end }}
     spec:
       # We don't need any interaction with k8s API
       automountServiceAccountToken: false 
       volumes:
-        - name: secrets
-          secret:
-            secretName: jupyterhub-ssh
         - name: config
-          configMap:
-            name: jupyterhub-ssh
+          secret:
+            secretName: {{ include "jupyterhub-ssh.fullname" . }}
       containers:
         - name: server
-          image: "{{ .Values.ssh.image.repository }}:{{ .Values.ssh.image.tag }}"
+          image: "{{ .Values.ssh.image.repository }}:{{ .Values.ssh.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.ssh.image.pullPolicy }}
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
           volumeMounts:
-            - name: secrets
-              mountPath: /etc/jupyterhub-ssh/secrets
-              readOnly: true
             - name: config
               mountPath: /etc/jupyterhub-ssh/config
               readOnly: true
@@ -53,17 +45,21 @@ spec:
               containerPort: 8022
               protocol: TCP
           resources:
-{{ toYaml .Values.ssh.resources | indent 12 }}
-    {{- with .Values.ssh.nodeSelector }}
+            {{- .Values.ssh.resources | toYaml | nindent 12 }}
+      {{- with .Values.ssh.imagePullSecrets }}
+      imagePullSecrets:
+        {{- . | toYaml | nindent 8 }}
+      {{- end }}
+      {{- with .Values.ssh.nodeSelector }}
       nodeSelector:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.ssh.affinity }}
+        {{- . | toYaml | nindent 8 }}
+      {{- end }}
+      {{- with .Values.ssh.affinity }}
       affinity:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.ssh.tolerations }}
+        {{- . | toYaml | nindent 8 }}
+      {{- end }}
+      {{- with .Values.ssh.tolerations }}
       tolerations:
-{{ toYaml . | indent 8 }}
-    {{- end }}
+        {{- . | toYaml | nindent 8 }}
+      {{- end }}
 {{- end }}

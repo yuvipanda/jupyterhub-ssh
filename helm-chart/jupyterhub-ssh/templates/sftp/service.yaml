@@ -1,24 +1,27 @@
-{{ if .Values.sftp.enabled }}
+{{- if .Values.sftp.enabled -}}
 apiVersion: v1
 kind: Service
 metadata:
-  name: jupyterhub-sftp
+  name: {{ include "jupyterhub-ssh.sftp.fullname" . }}
   labels:
-    app: {{ template "..name" . }}
-    chart: {{ template "..chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "jupyterhub-ssh.sftp.labels" . | nindent 4 }}
+    {{- with .Values.sftp.serviceLabels }}
+    {{- . | toYaml | nindent 4 }}
+    {{- end }}
+  {{- with .Values.sftp.serviceAnnotations }}
+  annotations:
+    {{- . | toYaml | nindent 4 }}
+  {{- end }}
 spec:
   type: {{ .Values.sftp.service.type }}
   ports:
-    - port: {{ .Values.sftp.service.port }}
-      targetPort: 2222
+    - name: sftp
+      port: {{ .Values.sftp.service.port }}
+      targetPort: sftp
       protocol: TCP
-      name: sftp
-      {{ if eq .Values.sftp.service.type "NodePort" }}
+      {{- if eq .Values.sftp.service.type "NodePort" }}
       nodePort: {{ .Values.sftp.service.nodePort }}
-      {{ end }}
+      {{- end }}
   selector:
-    app: {{ template "..name" . }}
-    release: {{ .Release.Name }}
+    {{- include "jupyterhub-ssh.sftp.selectorLabels" . | nindent 4 }}
 {{- end }}

@@ -24,7 +24,7 @@ COPY pam-common-auth /etc/pam.d/common-auth
 
 RUN python3 -m venv ${VENV_PATH}
 # FIXME: Get this from a fully frozen requirements.txt file plz
-RUN ${VENV_PATH}/bin/pip install --no-cache escapism requests ruamel.yaml
+RUN ${VENV_PATH}/bin/pip install --no-cache escapism requests
 
 COPY jupyterhub-token-verify.py /usr/sbin/jupyterhub-token-verify.py
 
@@ -35,5 +35,5 @@ COPY sshd_config /etc/ssh/sshd_config
 
 RUN mkdir -p /export/home
 
-EXPOSE 22
+EXPOSE 2222
 CMD ["/usr/sbin/sshd", "-De"]

@@ -1,9 +1,27 @@
-# Required to run
-hostKey:
+# Required configuration
+# hubUrl should be a URL like http://hub:8081 or https://jupyter.example.org.
+# Only HTTP(S) traffic will be sent to this URL.
+hubUrl: ""
+# hostKey is a private SSH key.
+# FIXME: Explain a bit where/how it is used as well.
+hostKey: ""
+
+# nameOverride if set, will override the name of the chart in two contexts.
+# 1. The label: app.kubernetes.io/name: <chart name>
+# 2. The Helm template function: jupyterhub-ssh.fullname, if fullnameOverride
+#    isn't set because then it takes precedence.
+nameOverride: ""
+# fullnameOverride set to a truthy value will make all k8s resources be named
+# <fullnameOverride> with an optional prefix. But if fullnameOverride is set to
+# a falsy value will make all k8s resource names become either <release
+# name>-<chart name> with an optional suffix, or <release name> with an optional
+# suffix. The chart name part is excluded if release name is found to contain
+# the chart name.
+fullnameOverride: "jupyterhub"
+
 
 ssh:
   enabled: true
-
   replicaCount: 1
 
   image:
@@ -15,42 +33,47 @@ ssh:
     type: ClusterIP
     port: 22
 
-  resources: {}
-
-  labels:
+  podLabels:
+    hub.jupyter.org/network-access-hub: "true"
     hub.jupyter.org/network-access-proxy-http: "true"
+  podAnnotations: {}
+  serviceLabels: {}
+  serviceAnnotations: {}
 
+  resources: {}
+  imagePullSecrets: []
   nodeSelector: {}
-
   tolerations: []
-
   affinity: {}
-
 
 
 sftp:
   enabled: true
   replicaCount: 1
 
-
+  # Not yet implemented. If we want this though, we should probably make sftp a
+  # statefulset!
   pvc:
-    name:
+    name: ""
 
   image:
     repository: yuvipanda/jupyterhub-ssh-sftp
-    tag: '0.0.1-n026.hf136ec7'
+    tag: "0.0.1-n026.hf136ec7"
     pullPolicy: Always
+
   service:
     type: ClusterIP
     port: 22
 
-  resources: {}
-
-  labels:
+  podLabels:
+    hub.jupyter.org/network-access-hub: "true"
     hub.jupyter.org/network-access-proxy-http: "true"
+  podAnnotations: {}
+  serviceLabels: {}
+  serviceAnnotations: {}
 
+  resources: {}
+  imagePullSecrets: []
   nodeSelector: {}
-
   tolerations: []
-
   affinity: {}
