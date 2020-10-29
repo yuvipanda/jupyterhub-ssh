@@ -3,13 +3,16 @@
 [![Documentation build status](https://img.shields.io/readthedocs/jupyterhub?logo=read-the-docs)](https://jupyterhub-ssh.readthedocs.io/en/latest/)
 
 Access through [SSH](https://www.ssh.com/ssh) any JupyterHub, regardless how it was deployed and easily transfer files through [SFTP](https://www.ssh.com/ssh/sftp).
+With a JupyterHub [SSH](https://www.ssh.com/ssh) server deployed, you can start and access your JupyterHub user environment through SSH. With a JupyterHub
+[SFTP](https://www.ssh.com/ssh/sftp) server deployed alongside the JupyterHub's user storage, you can use SFTP to work against your JupyterHub user's home directory.
+These services are authenticated using an access token acquired from your JupyterHub's user interface under `/hub/token`.
 
 ## Development Status
 This project is under active develpoment :tada:, so expect a few changes along the way.
 
 ## Technical Overview
 
-The JupyterHubSSH service is used for SSH access to your hub. `JupyterHubSSH` is made up of two main components:
+The JupyterHub SSH service provides SSH access to your user environment in a JupyterHub. JupyterHub SSH is made up of two main components:
 
 - an SSH server that maps a SSH connection to a Notebook server on a JupyterHub.
 - a [Terminado](https://github.com/jupyter/terminado) client that knows how to connect and communicate to a Jupyter terminal.
