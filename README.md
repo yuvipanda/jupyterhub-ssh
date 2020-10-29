@@ -56,18 +56,18 @@ Instructions on how to install and deploy JupyterHub SSH & SFTP services.
 	```
 
 ### Kuberbetes based deployment
+
 If your JupyterHub was deployed using Kubernetes, you can use the Helm charts available in this repo to deploy JupyterHub SSH & SFTP
 directly into your Kubernetes cluster.
 
+- Let helm the command line tool know about a Helm chart repository that we decide to name jupyterhub.
 	```bash
-	# Let helm the command line tool know about a Helm chart repository
-	# that we decide to name jupyterhub.
 	$ helm repo add jupyterhub-ssh https://yuvipanda.github.io/jupyterhub-ssh/
 	$ helm repo update
-
-	# Simplified example on how to install a Helm chart from a Helm chart repository
-	# named jupyterhub-ssh. See the Helm chart's documentation for additional details
-	# required.
+	```
+- Simplified example on how to install a Helm chart from a Helm chart repository named jupyterhub-ssh. See the Helm chart's documentation
+  for additional details required.
+	```bash
 	$ helm install jupyterhub-ssh/jupyterhub-ssh --version <helm chart version> --set hubUrl=https://jupyter.example.org --set-file hostKey=<path to a private SSH key>
 	```
 
