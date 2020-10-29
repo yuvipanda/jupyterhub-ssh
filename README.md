@@ -11,7 +11,7 @@ This project is under active develpoment :tada:, so expect a few changes along t
 
 JupyterHubSSH is made up of two main components:
 
-- a Notebook SSH server that maps a SSH connection to a Notebook server on a JupyterHub.
+- an SSH server that maps a SSH connection to a Notebook server on a JupyterHub.
 - a [Terminado](https://github.com/jupyter/terminado) client that knows how to connect and communicate to a Jupyter terminal.
 
 ![Overview](https://raw.githubusercontent.com/yuvipanda/jupyterhub-ssh/main/docs/source/_static/images/technical-overview.png)
