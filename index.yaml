@@ -3,6 +3,26 @@ entries:
   jupyterhub-ssh:
   - apiVersion: v2
     appVersion: 0.1.0
+    created: "2021-02-05T23:56:55.092171+05:30"
+    description: SSH interface to JupyterHub
+    digest: 8aa56b88e1512d8f017fef406954f2d936365340297166a38b6c67a7400bd1ca
+    home: https://github.com/yuvipanda/jupyterhub-ssh
+    icon: https://jupyter.org/assets/hublogo.svg
+    keywords:
+    - jupyterhub
+    - ssh
+    - stfp
+    maintainers:
+    - email: erik@sundellopensource.se
+      name: Erik Sundell
+    name: jupyterhub-ssh
+    sources:
+    - https://github.com/yuvipanda/jupyterhub-ssh
+    urls:
+    - https://yuvipanda.github.io/jupyterhub-ssh/jupyterhub-ssh-0.0.1-n077.h0c9caba.tgz
+    version: 0.0.1-n077.h0c9caba
+  - apiVersion: v2
+    appVersion: 0.1.0
     created: "2020-10-29T11:04:07.050376+05:30"
     description: SSH interface to JupyterHub
     digest: 41c8bcaf4238d07d1a7118b81fa3febfb42304e961e13ba2aa030dba89bdf87d
@@ -75,4 +95,4 @@ entries:
     urls:
     - https://yuvipanda.github.io/jupyterhub-ssh/jupyterhub-ssh-0.0.1-n022.h5a351df.tgz
     version: 0.0.1-n022.h5a351df
-generated: "2020-10-29T11:04:07.049771+05:30"
+generated: "2021-02-05T23:56:55.087238+05:30"
