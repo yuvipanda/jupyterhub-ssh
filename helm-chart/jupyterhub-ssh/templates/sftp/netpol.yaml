@@ -13,22 +13,28 @@ spec:
   - Ingress
   - Egress
   egress:
-  - ports:
-    - protocol: UDP
-      port: 53
-    - protocol: TCP
-      port: 53
-  # FIXME: This is way too permissive
-  - to:
-    - ipBlock:
-        cidr: 0.0.0.0/0
+    - ports:
+      - protocol: UDP
+        port: 53
+      - protocol: TCP
+        port: 53
+    # FIXME: This is way too permissive
+    - to:
+      - ipBlock:
+          cidr: 0.0.0.0/0
+    {{- with .Values.sftp.networkPolicy.egress }}
+    {{- . | toYaml | trimSuffix "\n" | nindent 4 }}
+    {{- end }}
   ingress:
-  # Allow pods in the same namespace with this label to have network access
-  - from:
-    - podSelector:
-        matchLabels:
-          hub.jupyter.org/network-access-sftp-server: "true"
-    ports:
-      - port: sftp
-        protocol: TCP
+    # Allow pods in the same namespace with this label to have network access
+    - from:
+      - podSelector:
+          matchLabels:
+            hub.jupyter.org/network-access-sftp-server: "true"
+      ports:
+        - port: sftp
+          protocol: TCP
+    {{- with .Values.sftp.networkPolicy.ingress}}
+    {{- . | toYaml | trimSuffix "\n" | nindent 4 }}
+    {{- end }}
 {{- end }}

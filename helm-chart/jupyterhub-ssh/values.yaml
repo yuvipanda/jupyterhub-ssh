@@ -45,6 +45,7 @@ ssh:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+  networkPolicy: {}
 
 
 sftp:
@@ -77,3 +78,4 @@ sftp:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+  networkPolicy: {}
