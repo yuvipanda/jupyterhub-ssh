@@ -11,7 +11,7 @@ entries:
     keywords:
     - jupyterhub
     - ssh
-    - stfp
+    - sftp
     maintainers:
     - email: erik@sundellopensource.se
       name: Erik Sundell
@@ -31,7 +31,7 @@ entries:
     keywords:
     - jupyterhub
     - ssh
-    - stfp
+    - sftp
     maintainers:
     - email: erik@sundellopensource.se
       name: Erik Sundell
