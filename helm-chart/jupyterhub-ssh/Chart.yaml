@@ -7,7 +7,7 @@ description: SSH interface to JupyterHub
 keywords:
   - jupyterhub
   - ssh
-  - stfp
+  - sftp
 home: https://github.com/yuvipanda/jupyterhub-ssh
 sources:
   - https://github.com/yuvipanda/jupyterhub-ssh
