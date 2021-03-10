@@ -58,7 +58,7 @@ Instructions on how to install and deploy JupyterHub SSH & SFTP services.
 	$ python -m jupyterhub_ssh
 	```
 
-### Kuberbetes based deployment
+### Kubernetes based deployment
 
 If your JupyterHub was deployed using Kubernetes, you can use the Helm charts available in this repo to deploy JupyterHub SSH & SFTP
 directly into your Kubernetes cluster.
