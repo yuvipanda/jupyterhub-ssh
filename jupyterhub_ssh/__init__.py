@@ -62,8 +62,7 @@ class NotebookSSHServer(asyncssh.SSHServer):
                 # Server start requested, not done yet
                 # We check for a while, reporting progress to user - until we're done
                 try:
-                    # FIXME: Make this configurable?
-                    async with timeout(self.ssh_conn_timeout):
+                    async with timeout(self.app.ssh_conn_timeout):
                         notebook_url = None
                         self._conn.send_auth_banner('Starting your server...')
                         while notebook_url is None:
