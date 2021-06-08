@@ -23,6 +23,9 @@ fullnameOverride: "jupyterhub"
 ssh:
   enabled: true
   replicaCount: 1
+  # Set timeout period for ssh connectoin. May need to set higher if your server
+  # a long time to start. 
+  timeout: 30
 
   image:
     repository: yuvipanda/jupyterhub-ssh-ssh

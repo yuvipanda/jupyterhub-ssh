@@ -63,7 +63,7 @@ class NotebookSSHServer(asyncssh.SSHServer):
                 # We check for a while, reporting progress to user - until we're done
                 try:
                     # FIXME: Make this configurable?
-                    async with timeout(30):
+                    async with timeout(self.ssh_conn_timeout):
                         notebook_url = None
                         self._conn.send_auth_banner('Starting your server...')
                         while notebook_url is None:
@@ -234,6 +234,16 @@ class JupyterHubSSH(Application):
         Path to host's private SSH Key.
 
         *Must* be set.
+        """,
+        config=True
+    )
+
+    ssh_conn_timeout = Integer(
+        30,
+        help="""
+        Timeout period for ssh connection.
+
+        Set higher if your server takes longer to start.
         """,
         config=True
     )
