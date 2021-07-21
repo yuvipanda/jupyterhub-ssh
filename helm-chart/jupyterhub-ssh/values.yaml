@@ -25,8 +25,8 @@ ssh:
   replicaCount: 1
 
   image:
-    repository: yuvipanda/jupyterhub-ssh-ssh
-    tag: '0.0.1-n026.hf136ec7'
+    repository: quay.io/jupyterhub-ssh/ssh
+    tag: "set-by-chartpress"
     pullPolicy: Always
 
   service:
@@ -58,8 +58,8 @@ sftp:
     name: ""
 
   image:
-    repository: yuvipanda/jupyterhub-ssh-sftp
-    tag: "0.0.1-n026.hf136ec7"
+    repository: quay.io/jupyterhub-ssh/sftp
+    tag: "set-by-chartpress"
     pullPolicy: Always
 
   service:
@@ -79,3 +79,5 @@ sftp:
   tolerations: []
   affinity: {}
   networkPolicy: {}
+
+global: {}

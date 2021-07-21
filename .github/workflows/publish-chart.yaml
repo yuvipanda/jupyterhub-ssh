@@ -1,0 +1,123 @@
+# This is a GitHub workflow defining a set of jobs with a set of steps.
+# ref: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
+#
+name: Publish
+
+# Trigger the workflow on pushed tags or commits to main branch.
+on:
+  pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+      - ".github/workflows/*"
+      - "!.github/workflows/publish.yaml"
+  push:
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+      - ".github/workflows/*"
+      - "!.github/workflows/publish.yaml"
+    branches-ignore:
+      - "dependabot/**"
+    tags:
+      - "**"
+
+jobs:
+  # Builds and pushes docker images to Quay.io, package the Helm chart, and
+  # pushes it to yuvipanda/jupyterhub-ssh@gh-pages where index.yaml represents
+  # the JupyterHub organization Helm chart repository.
+  #
+  publish:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          # chartpress requires the full history
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+
+      - name: store whether we are publishing the chart
+        id: publishing
+        shell: python
+        run: |
+          publishing = ""
+          if (
+              "${{ github.repository }}" == "yuvipanda/jupyterhub-ssh"
+              and "${{ github.event_name }}" == "push"
+              and (
+                  "${{ github.event.ref }}".startswith("refs/tags/")
+                  or
+                  "${{ github.event.ref }}" == "refs/heads/main"
+              )
+          ):
+              publishing = "true"
+              print("Publishing chart")
+          print(f"::set-output name=publishing::{publishing}")
+
+      - name: Set up QEMU (for docker buildx)
+        uses: docker/setup-qemu-action@27d0a4f181a40b142cce983c5393082c365d1480
+
+      - name: Set up Docker Buildx (for chartpress multi-arch builds)
+        uses: docker/setup-buildx-action@abe5d8f79a1606a2d3e218847032f3f2b1726ab0
+
+      - name: Install dependencies
+        run: |
+          pip install -r dev-requirements.txt
+          pip list
+          helm version
+
+      - name: Setup push rights to container registry
+        if: steps.publishing.outputs.publishing
+        run: docker login -u "${{ secrets.QUAY_USERNAME }}" -p "${{ secrets.QUAY_PASSWORD }}"
+
+      - name: Configure a git user
+        run: |
+          git config --global user.email "github-actions@example.local"
+          git config --global user.name "GitHub Actions user"
+
+      - name: Generate values.schema.json
+        run: helm-chart/tools/generate-json-schema.py
+      
+      - name: Update Chart.yaml and values.yaml
+        run: |
+          cd helm-chart
+          chartpress --no-build
+
+      - name: Publish images and chart with chartpress
+        if: steps.publishing.outputs.publishing
+        run: |
+          set -eux
+          cd helm-chart    
+
+          PUBLISH_ARGS=" \
+              --push --publish-chart \
+              --builder docker-buildx \
+              --platform linux/amd64 --platform linux/arm64 \
+          "
+
+          if [[ $GITHUB_REF != refs/tags/* ]]; then
+              PR_OR_HASH=$(git log -1 --pretty=%h-%B | head -n1 | sed 's/^.*\(#[0-9]*\).*/\1/' | sed 's/^\([0-9a-f]*\)-.*/@\1/')
+              LATEST_COMMIT_TITLE=$(git log -1 --pretty=%B | head -n1)
+              EXTRA_MESSAGE="${{ github.repository }}${PR_OR_HASH} ${LATEST_COMMIT_TITLE}"
+              chartpress $PUBLISH_ARGS --extra-message "${EXTRA_MESSAGE}"
+          else
+              chartpress $PUBLISH_ARGS --tag "${GITHUB_REF:10}"
+          fi
+
+          git --no-pager diff --color
+
+      - name: CI artifact - Package Helm chart
+        if: steps.publishing.outputs.publishing == ''
+        run: helm package helm-chart/jupyterhub-ssh
+
+      # ref: https://github.com/actions/upload-artifact
+      - name: CI artifact - Upload Helm chart
+        uses: actions/upload-artifact@v2
+        if: steps.publishing.outputs.publishing == ''
+        with:
+          name: jupyterhub-ssh-${{ github.sha }}
+          path: helm-chart/jupyterhub-ssh-*.tgz
+          if-no-files-found: error
