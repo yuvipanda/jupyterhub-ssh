@@ -25,7 +25,10 @@ properties:
 
   hostKey:
     type: [string, "null"]
-    description: TODO
+    description: |
+      This private SSH key is automatically generated unless explicitly set. It
+      is used by the jupyterhub-ssh and jupyterhub-sftp pods to encrypt outbound
+      traffic via SSH.
 
   fullnameOverride:
     type: [string, "null"]
