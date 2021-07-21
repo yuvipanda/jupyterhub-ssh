@@ -119,5 +119,5 @@ jobs:
         if: steps.publishing.outputs.publishing == ''
         with:
           name: jupyterhub-ssh-${{ github.sha }}
-          path: helm-chart/jupyterhub-ssh-*.tgz
+          path: jupyterhub-ssh-*.tgz
           if-no-files-found: error
