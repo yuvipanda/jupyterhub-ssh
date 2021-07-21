@@ -79,3 +79,5 @@ sftp:
   tolerations: []
   affinity: {}
   networkPolicy: {}
+
+global: {}
