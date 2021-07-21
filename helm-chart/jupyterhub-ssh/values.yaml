@@ -27,7 +27,7 @@ ssh:
   image:
     repository: quay.io/jupyterhub-ssh/ssh
     tag: "set-by-chartpress"
-    pullPolicy: Always
+    pullPolicy: ""
 
   service:
     type: ClusterIP
@@ -59,7 +59,7 @@ sftp:
   image:
     repository: quay.io/jupyterhub-ssh/sftp
     tag: "set-by-chartpress"
-    pullPolicy: Always
+    pullPolicy: ""
 
   service:
     type: ClusterIP
