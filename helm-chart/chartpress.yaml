@@ -1,6 +1,6 @@
 charts:
   - name: jupyterhub-ssh
-    imagePrefix: yuvipanda/jupyterhub-ssh-
+    imagePrefix: quay.io/yuvipanda/jupyterhub-ssh-
     repo:
       git: yuvipanda/jupyterhub-ssh
       published: https://yuvipanda.github.io/jupyterhub-ssh/
