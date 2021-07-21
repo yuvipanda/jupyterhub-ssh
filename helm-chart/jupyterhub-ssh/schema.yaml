@@ -1,0 +1,48 @@
+# This schema (a jsonschema in YAML format) is used to generate
+# values.schema.json which is packaged with the Helm chart for client side
+# validation by Helm of values before template rendering.
+#
+# This schema is also used by our documentation system to build the
+# configuration reference section based on the description fields. See
+# doc/source/conf.py for that logic!
+#
+# We look to document everything we have default values for in values.yaml, but
+# we don't look to enforce the perfect validation logic within this file.
+#
+# ref: https://json-schema.org/learn/getting-started-step-by-step.html
+#
+$schema": http://json-schema.org/draft-07/schema#
+type: object
+additionalProperties: false
+required:
+  - ssh
+  - sftp
+  - global
+properties:
+  hubUrl:
+    type: [string, "null"]
+    description: TODO
+
+  hostKey:
+    type: [string, "null"]
+    description: TODO
+
+  fullnameOverride:
+    type: [string, "null"]
+    description: TODO
+
+  nameOverride:
+    type: [string, "null"]
+    description: TODO
+
+  ssh:
+    type: object
+    description: TODO
+
+  sftp:
+    type: object
+    description: TODO
+
+  global:
+    type: object
+    description: Global scoped config for all Helm charts to read.
