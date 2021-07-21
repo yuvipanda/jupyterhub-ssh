@@ -1,7 +1,7 @@
 hubUrl: http://hub:8081
 
 # hostKey below is a dummy key made public to be used for testing only
-hostKey: |-
+hostKey: |
   -----BEGIN OPENSSH PRIVATE KEY-----
   b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
   QyNTUxOQAAACDPTRZ0NH4G7xfngsVxDUHc0Jb3MnJK3iKdyvzDW5kbJAAAAKA1pBUsNaQV
