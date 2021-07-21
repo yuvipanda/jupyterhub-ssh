@@ -55,14 +55,8 @@ jobs:
         run: helm lint --strict helm-chart/jupyterhub-ssh
         continue-on-error: true
 
-      # FIXME: A good practice is to support installing a chart without need to
-      #        specify anything, but we currently don't support this for this
-      #        Helm chart that still require both hubUrl and hostKey to be set.
-      #
-      #        Enable this step whenever we have solved this.
-      #
-      # - name: Helm template (values.yaml)
-      #   run: helm template helm-chart/jupyterhub-ssh
+      - name: Helm template (values.yaml)
+        run: helm template helm-chart/jupyterhub-ssh --set hubUrl=http://hub:8081
 
       - name: Helm template (values.lint.yaml)
         run: helm template helm-chart/jupyterhub-ssh --values helm-chart/jupyterhub-ssh/values.lint.yaml
@@ -130,8 +124,10 @@ jobs:
       - name: Helm template --validate (with lint config)
         run: helm template --validate jupyterhub-ssh helm-chart/jupyterhub-ssh --values helm-chart/jupyterhub-ssh/values.lint.yaml
 
-      - name: Install jupyterhub
-        run: helm install jupyterhub --repo https://jupyterhub.github.io/helm-chart/ jupyterhub
+      # FIXME: Add back when we are using pytest do test something more
+      #        complicated than just installing the chart by itself.
+      # - name: Install jupyterhub
+      #   run: helm install jupyterhub --repo https://jupyterhub.github.io/helm-chart/ jupyterhub
 
       - name: Install jupyterhub-ssh
         run: helm install jupyterhub-ssh helm-chart/jupyterhub-ssh --values helm-chart/jupyterhub-ssh/values.dev.yaml
