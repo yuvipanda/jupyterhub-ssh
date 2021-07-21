@@ -142,8 +142,11 @@ jobs:
           timeout: 150
           max-restarts: 0
 
-      - name: Run tests
-        run: pytest --verbose --maxfail=2 --color=yes ./helm-chart
+      # FIXME: Setup pytest tests against our deployed Helm chart
+      #
+      # - name: Run tests
+      #   run: |
+      #     pytest --verbose --maxfail=2 --color=yes ./helm-chart/tests
 
       # action reference: https://github.com/jupyterhub/action-k8s-namespace-report
       - name: Kubernetes namespace report
