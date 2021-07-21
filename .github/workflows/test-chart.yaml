@@ -83,6 +83,7 @@ jobs:
         # k3s-channel: https://update.k3s.io/v1-release/channels
         include:
           - k3s-channel: v1.21
+            debuggable: debuggable
           - k3s-channel: v1.20
           - k3s-channel: v1.19
           - k3s-channel: v1.18
@@ -97,7 +98,7 @@ jobs:
       # Starts a k8s cluster with NetworkPolicy enforcement and installs both
       # kubectl and helm
       #
-      # ref: https://github.com/jupyterhub/action-k3s-helm/
+      # action reference: https://github.com/jupyterhub/action-k3s-helm/
       - uses: jupyterhub/action-k3s-helm@v1
         with:
           k3s-channel: ${{ matrix.k3s-channel }}
@@ -144,9 +145,17 @@ jobs:
       - name: Run tests
         run: pytest --verbose --maxfail=2 --color=yes ./helm-chart
 
-      # ref: https://github.com/jupyterhub/action-k8s-namespace-report
+      # action reference: https://github.com/jupyterhub/action-k8s-namespace-report
       - name: Kubernetes namespace report
         uses: jupyterhub/action-k8s-namespace-report@v1
         if: always()
         with:
           important-workloads: deploy/jupyterhub-ssh deploy/jupyterhub-sftp deploy/hub
+
+      # WARNING: Only allow this for pull_request runs that doesn't contain
+      #          sensitive information.
+      #
+      # action reference: https://github.com/mxschmitt/action-tmate@v3
+      - name: To enter a SSH debugging session, read these logs
+        if: failure() && github.event_name == 'pull_request' && matrix.debuggable == 'debuggable'
+        uses: mxschmitt/action-tmate@v3
