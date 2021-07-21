@@ -26,9 +26,11 @@ spec:
       # We don't need any interaction with k8s API
       automountServiceAccountToken: false 
       volumes:
+        {{- if .Values.sftp.pvc.enabled }}
         - name: home
           persistentVolumeClaim:
             claimName: {{ .Values.sftp.pvc.name }}
+        {{- end }}
         # Selects only parts of the k8s Secret as a Volume. Note that we can
         # also specify a mode for individual files at this point, for example to
         # make the hostKey read only in the file system.
@@ -50,8 +52,10 @@ spec:
           securityContext:
             privileged: true
           volumeMounts:
+            {{- if .Values.sftp.pvc.enabled }}
             - name: home
               mountPath: /mnt/home
+            {{- end }}
             - name: config
               mountPath: /etc/jupyterhub-sftp/config
               readOnly: true

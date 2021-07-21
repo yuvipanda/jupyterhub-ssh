@@ -1,4 +1,6 @@
 hubUrl: http://hub:8081
+
+# hostKey below is a dummy key made public to be used for testing only
 hostKey: |-
   -----BEGIN OPENSSH PRIVATE KEY-----
   b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
@@ -7,3 +9,9 @@ hostKey: |-
   AAAEClt5QRsubBUf3+u6tvzMR7NUjNYELJ5/85Vp0wE4/skc9NFnQ0fgbvF+eCxXENQdzQ
   lvcyckreIp3K/MNbmRskAAAAHUR1bW15IGtleSBmb3IgdmFsdWVzLmRldi55YW1s
   -----END OPENSSH PRIVATE KEY-----
+
+sftp:
+  pvc:
+    # Don't attempt to mount storage for JupyterHub's home directories for now,
+    # just try make sure we can start the Helm chart containers successfully.
+    enabled: false
