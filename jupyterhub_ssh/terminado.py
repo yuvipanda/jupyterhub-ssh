@@ -1,5 +1,6 @@
-import websockets
 import json
+
+import websockets
 
 
 class Terminado:

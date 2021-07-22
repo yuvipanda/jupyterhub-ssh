@@ -1,13 +1,16 @@
-import asyncssh
 import asyncio
 import logging
-from yarl import URL
 from functools import partial
-from traitlets.config import Application
-from traitlets import Integer, Unicode, Bool, Any
-from async_timeout import timeout
 
+import asyncssh
 from aiohttp import ClientSession
+from async_timeout import timeout
+from traitlets import Any
+from traitlets import Bool
+from traitlets import Integer
+from traitlets import Unicode
+from traitlets.config import Application
+from yarl import URL
 
 from .terminado import Terminado
 

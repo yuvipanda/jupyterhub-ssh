@@ -54,13 +54,13 @@ give them read (and possibly write) access to *any* part of the filesystem.
 So we have to be very careful doing this.
 """
 import os
-import requests
 import string
 import subprocess
 import sys
-
-from escapism import escape
 from pathlib import PosixPath
+
+import requests
+from escapism import escape
 
 
 def valid_user(hub_url, username, token):
