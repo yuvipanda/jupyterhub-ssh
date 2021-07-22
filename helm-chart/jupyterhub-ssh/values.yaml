@@ -2,8 +2,11 @@
 # hubUrl should be a URL like http://hub:8081 or https://jupyter.example.org.
 # Only HTTP(S) traffic will be sent to this URL.
 hubUrl: ""
-# hostKey is a private SSH key.
-# FIXME: Explain a bit where/how it is used as well.
+
+# hostKey is a private SSH key used to encrypt outgoing communication from the
+# jupyterhub-ssh and jupyterhub-sftp pods. If this value is blank, whatever was
+# used previously will be used, but if nothing has been used previously a RSA
+# 4086 key will be generated.
 hostKey: ""
 
 # nameOverride if set, will override the name of the chart in two contexts.

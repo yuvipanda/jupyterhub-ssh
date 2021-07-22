@@ -83,3 +83,21 @@ app.kubernetes.io/component: sftp
 {{ include "jupyterhub-ssh.selectorLabels" . }}
 app.kubernetes.io/component: ssh
 {{- end }}
+
+{{- /*
+This named template is used to return the explicitly set hostKey, lookup an
+previously set hostKey, or generate and return a new hostKey.
+*/}}
+{{- define "jupyterhub-ssh.hostKey" -}}
+    {{- if .Values.hostKey }}
+        {{- .Values.hostKey }}
+    {{- else }}
+        {{- $k8s_state := lookup "v1" "Secret" .Release.Namespace (include "jupyterhub-ssh.ssh.fullname" .) | default (dict "data" (dict)) }}
+        {{- if hasKey $k8s_state.data "hostKey" }}
+            {{- index $k8s_state.data "hostKey" }}
+        {{- else }}
+            {{- /* While ed25519 is preferred, using it with jupyterhub-sftp seem to fail. */}}
+            {{- genPrivateKey "rsa" }}
+        {{- end }}
+    {{- end }}
+{{- end }}
