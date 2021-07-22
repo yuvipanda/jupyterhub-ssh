@@ -28,7 +28,7 @@ RUN adduser \
 #
 COPY setup-nss.bash /tmp/
 RUN /tmp/setup-nss.bash && rm /tmp/setup-nss.bash
-COPY libnss-ato.conf nsswitch.conf /etc/
+COPY etc/libnss-ato.conf etc/nsswitch.conf /etc/
 
 # Setup our custom Python logic
 # - It couples PAM auth to the verification of JupyterHub tokens
@@ -36,7 +36,7 @@ COPY libnss-ato.conf nsswitch.conf /etc/
 COPY requirements.txt /tmp/
 RUN pip install -r /tmp/requirements.txt
 COPY jupyterhub-token-verify.py /usr/sbin/
-COPY pam-common-auth /etc/pam.d/
+COPY etc/pam.d/common-auth /etc/pam.d/
 
 # Setup SSHD - The OpenSSH server process
 # - /export/home is what sshd will expose
@@ -53,6 +53,6 @@ COPY pam-common-auth /etc/pam.d/
 RUN mkdir -p \
         /export/home \
         /run/sshd
-COPY sshd_config /etc/ssh/
+COPY etc/ssh/sshd_config /etc/ssh/
 EXPOSE 2222
 CMD ["/usr/sbin/sshd", "-De"]
