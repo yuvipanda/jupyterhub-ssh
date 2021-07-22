@@ -8,10 +8,8 @@ contains a lot of description text we use to generate our configuration
 reference that isn't helpful to ship along the validation schema. Due to that,
 we trim away everything that isn't needed.
 """
-
 import json
 import os
-
 from collections.abc import MutableMapping
 
 import yaml

@@ -54,30 +54,31 @@ give them read (and possibly write) access to *any* part of the filesystem.
 So we have to be very careful doing this.
 """
 import os
-import requests
 import string
 import subprocess
 import sys
-
-from escapism import escape
 from pathlib import PosixPath
+
+import requests
+from escapism import escape
+
 
 def valid_user(hub_url, username, token):
     """
     Check if token is valid for username in hub at hub_url
     """
-    # FIXME: Construct this URL better? 
-    url = f'{hub_url}/hub/api/user'
-    headers = {
-        'Authorization': f'token {token}'
-    }
+    # FIXME: Construct this URL better?
+    url = f"{hub_url}/hub/api/user"
+    headers = {"Authorization": f"token {token}"}
     resp = requests.get(url, headers=headers)
     return resp.status_code == 200
 
+
 # Directory containing user home directories
-SRC_DIR = PosixPath('/mnt/home')
+SRC_DIR = PosixPath("/mnt/home")
 # Directory sshd is exposing. We will bind-mount users there
-DEST_DIR = PosixPath('/export/home')
+DEST_DIR = PosixPath("/export/home")
+
 
 def bind_mount_user(untrusted_username):
     # username is user controlled data, so should be treated more cautiously
@@ -91,7 +92,9 @@ def bind_mount_user(untrusted_username):
     # directory.
     # FIXME: Verify usernames starting with '-' work fine with PAM & NSS
     safe_chars = set(string.ascii_lowercase + string.digits)
-    source_username = escape(untrusted_username, safe=safe_chars, escape_char='-').lower()
+    source_username = escape(
+        untrusted_username, safe=safe_chars, escape_char="-"
+    ).lower()
 
     # To protect against path traversal attacks, we:
     # 1. Resolve our paths to absolute paths, traversing any symlinks if needed
@@ -114,20 +117,18 @@ def bind_mount_user(untrusted_username):
     if not os.path.exists(dest_chroot_path):
         os.makedirs(dest_chroot_path, exist_ok=True)
         os.makedirs(dest_bind_path, exist_ok=True)
-        subprocess.check_call([
-            'mount', '-o', 'bind',
-            src_path, dest_bind_path
-        ])
+        subprocess.check_call(["mount", "-o", "bind", src_path, dest_bind_path])
+
 
 # PAM_USER is passed in to us by pam_exec: http://www.linux-pam.org/Linux-PAM-html/sag-pam_exec.html
 # We *must* treat this as untrusted. From `pam_exec`'s documentation:
 # >  Commands called by pam_exec need to be aware of that the user can have control over the environment.
-untrusted_username = os.environ['PAM_USER']
+untrusted_username = os.environ["PAM_USER"]
 
 # Password is a null delimited string, passed in via stdin by pam_exec
-password = sys.stdin.read().rstrip('\x00')
+password = sys.stdin.read().rstrip("\x00")
 
-with open('/etc/jupyterhub-sftp/config/hubUrl', 'r') as f:
+with open("/etc/jupyterhub-sftp/config/hubUrl", "r") as f:
     hub_url = f.read()
 
 if valid_user(hub_url, untrusted_username, password):

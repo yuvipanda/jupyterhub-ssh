@@ -1,0 +1,29 @@
+# This is a GitHub workflow defining a set of jobs with a set of steps.
+# ref: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
+#
+name: Run pre-commit
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  run-hooks:
+    name: Run pre-commit
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set Up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install pre-commit
+        run: pip install --upgrade pre-commit
+
+      - name: pre-commit run --all
+        run: pre-commit run --all

@@ -1,7 +1,7 @@
 # This is a GitHub workflow defining a set of jobs with a set of steps.
 # ref: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
 #
-name: Publish
+name: Publish chart
 
 # Trigger the workflow on pushed tags or commits to main branch.
 on:
@@ -80,7 +80,7 @@ jobs:
 
       - name: Generate values.schema.json
         run: helm-chart/tools/generate-json-schema.py
-      
+
       - name: Update Chart.yaml and values.yaml
         run: |
           cd helm-chart
