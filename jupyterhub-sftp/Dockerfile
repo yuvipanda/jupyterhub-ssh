@@ -1,3 +1,7 @@
+# To build this Dockerfile locally:
+#
+#   docker build --tag jupyterhub-sftp .
+#
 FROM buildpack-deps:focal
 
 RUN apt-get update -y > /dev/null \
