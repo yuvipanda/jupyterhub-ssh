@@ -4,9 +4,6 @@ charts:
     repo:
       git: yuvipanda/jupyterhub-ssh
       published: https://yuvipanda.github.io/jupyterhub-ssh/
-    paths:
-      - ../setup.py
-      - ../jupyterhub_ssh
     images:
       sftp:
         contextPath: ../jupyterhub-sftp
@@ -14,12 +11,12 @@ charts:
       ssh:
         # Context to send to docker build for use by the Dockerfile
         contextPath: ..
+        rebuildOnContextPathChanges: false
         # Dockerfile path relative to chartpress.yaml
         dockerfilePath: images/jupyterhub-ssh/Dockerfile
         valuesPath: ssh.image
-        # additional paths relevant to the image
-        # in addition to image directory itself
-        # paths are relative to build.py
+        # Paths that when changed should trigger a rebuild
         paths:
           - ../setup.py
           - ../jupyterhub_ssh
+          - images/jupyterhub-ssh
