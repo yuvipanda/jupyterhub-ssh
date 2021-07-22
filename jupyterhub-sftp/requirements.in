@@ -1,0 +1,6 @@
+# This file is automatically used by Dependabot to update requirements.txt via
+# the command pip-compile. If you add something new here, install pip-tools and
+# then run pip-compile from this folder.
+#
+escapism
+requests

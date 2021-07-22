@@ -1,12 +1,16 @@
 FROM buildpack-deps:focal
 
-RUN apt update --yes > /dev/null && \
-    apt install --yes openssh-server python3 python3-venv > /dev/null
+RUN apt-get update -y > /dev/null \
+ && apt-get upgrade -y > /dev/null \
+ && apt-get install -y \
+        openssh-server \
+        python3 \
+        python3-pip \
+ && rm -rf /var/lib/apt/lists/*
 
-ENV NB_UID=1000
-ENV NB_USER jovyan
-ENV VENV_PATH /opt/venv
-
+# Setup the jovyan user everyone will impersonate
+ENV NB_UID=1000 \
+    NB_USER=jovyan
 RUN adduser \
     --disabled-password \
     --shell "/sbin/nologin" \
@@ -14,26 +18,41 @@ RUN adduser \
     --uid ${NB_UID} \
     ${NB_USER}
 
-# Setup NSS so all users are mapped to jovyan
-COPY setup-nss.bash /tmp/setup-nss.bash
+# Setup Name Service Switch (NSS) All-To-One (ATO) logic
+# - It map unknown users to the jovyan user
+# - Setup involves git clone and C code compilation
+#
+# FIXME: Slim down image to not include gcc etc. as is required to compile this
+#        software by using a dedicated build step from which we later copy the
+#        compiled software from.
+#
+COPY setup-nss.bash /tmp/
 RUN /tmp/setup-nss.bash && rm /tmp/setup-nss.bash
-COPY libnss-ato.conf /etc/libnss-ato.conf
-COPY nsswitch.conf /etc/nsswitch.conf
+COPY libnss-ato.conf nsswitch.conf /etc/
 
-COPY pam-common-auth /etc/pam.d/common-auth
+# Setup our custom Python logic
+# - It couples PAM auth to the verification of JupyterHub tokens
+#
+COPY requirements.txt /tmp/
+RUN pip install -r /tmp/requirements.txt
+COPY jupyterhub-token-verify.py /usr/sbin/
+COPY pam-common-auth /etc/pam.d/
 
-RUN python3 -m venv ${VENV_PATH}
-# FIXME: Get this from a fully frozen requirements.txt file plz
-RUN ${VENV_PATH}/bin/pip install --no-cache escapism requests
-
-COPY jupyterhub-token-verify.py /usr/sbin/jupyterhub-token-verify.py
-
-# Setup SSHD
-# Privilege separation dir (not sure what that is!) needed by sshd
-RUN mkdir /run/sshd
-COPY sshd_config /etc/ssh/sshd_config
-
-RUN mkdir -p /export/home
-
+# Setup SSHD - The OpenSSH server process
+# - /export/home is what sshd will expose
+# - /run/sshd is referred to as a privilege separation dir (what is it?)
+#
+# sshd reference:
+# -D    sshd will not detach and does not become a daemon
+# -e    sshd will send the output to the standard error instead of the system
+#       log.
+#
+# NOTE: sshd listens to SIGTERM and not just SIGKILL, so terminating this
+#       container will be quick as it should be.
+#
+RUN mkdir -p \
+        /export/home \
+        /run/sshd
+COPY sshd_config /etc/ssh/
 EXPOSE 2222
 CMD ["/usr/sbin/sshd", "-De"]
