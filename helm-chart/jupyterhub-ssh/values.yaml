@@ -22,7 +22,6 @@ nameOverride: ""
 # the chart name.
 fullnameOverride: "jupyterhub"
 
-
 ssh:
   enabled: true
   replicaCount: 1
@@ -49,7 +48,6 @@ ssh:
   tolerations: []
   affinity: {}
   networkPolicy: {}
-
 
 sftp:
   enabled: true

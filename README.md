@@ -8,6 +8,7 @@ With a JupyterHub [SSH](https://www.ssh.com/ssh) server deployed, you can start 
 These services are authenticated using an access token acquired from your JupyterHub's user interface under `/hub/token`.
 
 ## Development Status
+
 This project is under active develpoment :tada:, so expect a few changes along the way.
 
 ## Technical Overview
@@ -31,32 +32,33 @@ Instructions on how to install and deploy JupyterHub SSH & SFTP services.
 ### Regular deployment
 
 1. Clone the repo and install the jupyterhub-ssh package:
-	``` bash
-	$ git clone https://github.com/yuvipanda/jupyterhub-ssh.git
-	$ cd jupyterhub-ssh
-	$ pip install -e .
-	```
+   ```bash
+   $ git clone https://github.com/yuvipanda/jupyterhub-ssh.git
+   $ cd jupyterhub-ssh
+   $ pip install -e .
+   ```
 1. Or install the package directly:
-	``` bash
-	$ pip install git+https://github.com/yuvipanda/jupyterhub-ssh.git
-	```
 
-2. Create the config file:
-	```bash
-	$ touch jupyterhub_ssh_config.py
-	```
+   ```bash
+   $ pip install git+https://github.com/yuvipanda/jupyterhub-ssh.git
+   ```
 
-3. Put in the config file at least the following two config options:
-	* `c.JupyterHubSSH.hub_url`: URL of JupyterHub to connect to.
-	* `c.JupyterHubSSH.host_key_path`: Path to host's private SSH Key.
+1. Create the config file:
 
-	More configuration options can be found in the docs [here](https://jupyterhub-ssh.readthedocs.io/en/latest/api/index.html#module-jupyterhub_ssh).
+   ```bash
+   $ touch jupyterhub_ssh_config.py
+   ```
 
-5. Start the JupyterHubSSH app from the directory where the config file
-`jupyterhub_ssh_config.py` is located:
-	```bash
-	$ python -m jupyterhub_ssh
-	```
+1. Put in the config file at least the following two config options:
+
+   - `c.JupyterHubSSH.hub_url`: URL of JupyterHub to connect to.
+   - `c.JupyterHubSSH.host_key_path`: Path to host's private SSH Key.
+
+   More configuration options can be found in the docs [here](https://jupyterhub-ssh.readthedocs.io/en/latest/api/index.html#module-jupyterhub_ssh).
+
+1. Start the JupyterHubSSH app from the directory where the config file
+   `jupyterhub_ssh_config.py` is located:
+   `bash $ python -m jupyterhub_ssh `
 
 ### Kubernetes based deployment
 
@@ -64,37 +66,39 @@ If your JupyterHub was deployed using Kubernetes, you can use the Helm charts av
 directly into your Kubernetes cluster.
 
 - Let helm the command line tool know about a Helm chart repository that we decide to name jupyterhub.
-	```bash
-	$ helm repo add jupyterhub-ssh https://yuvipanda.github.io/jupyterhub-ssh/
-	$ helm repo update
-	```
+  ```bash
+  $ helm repo add jupyterhub-ssh https://yuvipanda.github.io/jupyterhub-ssh/
+  $ helm repo update
+  ```
 - Simplified example on how to install a Helm chart from a Helm chart repository named jupyterhub-ssh. See the Helm chart's documentation
   for additional details required.
-	```bash
-	$ helm install jupyterhub-ssh/jupyterhub-ssh --version <helm chart version> --set hubUrl=https://jupyter.example.org --set-file hostKey=<path to a private SSH key>
-	```
+  ```bash
+  $ helm install jupyterhub-ssh/jupyterhub-ssh --version <helm chart version> --set hubUrl=https://jupyter.example.org --set-file hostKey=<path to a private SSH key>
+  ```
 
 ## How to use it
 
 ### How to SSH
+
 1. Login into your JupyterHub and go to `https://<hub-address>/hub/token`.
 2. Copy the token from JupyterHub.
 3. SSH into JupyterHub:
-	```bash
-	$ ssh <username-you-used>@<hub-address>
-	```
+   ```bash
+   $ ssh <username-you-used>@<hub-address>
+   ```
 4. Enter the token received from JupyterHub as a password.
 5. TADA :tada: Now you have an interactive terminal! You can do anything you would generally interactively do via ssh: run editors,
-fully interactive programs, use the commandline, etc. Some features like non-interactive command running, tunneling, etc are currently
-unavailable.
+   fully interactive programs, use the commandline, etc. Some features like non-interactive command running, tunneling, etc are currently
+   unavailable.
 
 ### How to SFTP
+
 1. Login into your JupyterHub and go to `https://<hub-address>/hub/token`.
 2. Copy the token from JupyterHub.
 3. Transfer file into Jupyterhub:
-	* Using the `sftp` command:
-		```bash
-		$ sftp <hub-username>@<hub-address>
-		```
+   - Using the `sftp` command:
+     ```bash
+     $ sftp <hub-username>@<hub-address>
+     ```
 4. Enter the token received from JupyterHub as a password.
 5. TADA :tada: Now you can transfer files to and from your home directory on the hubs.
