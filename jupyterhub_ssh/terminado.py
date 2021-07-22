@@ -8,22 +8,20 @@ class Terminado:
         self.token = token
         self.session = session
 
-        self.headers = {
-            'Authorization': f'token {self.token}'
-        }
+        self.headers = {"Authorization": f"token {self.token}"}
 
     async def __aenter__(self):
         """
         Create a terminal & connect to it
         """
-        notebook_secure = self.notebook_url.scheme == 'https'
+        notebook_secure = self.notebook_url.scheme == "https"
 
         create_url = self.notebook_url / "api/terminals"
         async with self.session.post(create_url, headers=self.headers) as resp:
             data = await resp.json()
-        self.terminal_name = data['name']
-        socket_url = self.notebook_url / 'terminals/websocket' / self.terminal_name
-        ws_url = socket_url.with_scheme('wss' if notebook_secure else 'ws')
+        self.terminal_name = data["name"]
+        socket_url = self.notebook_url / "terminals/websocket" / self.terminal_name
+        ws_url = socket_url.with_scheme("wss" if notebook_secure else "ws")
 
         self.ws = await websockets.connect(str(ws_url), extra_headers=self.headers)
 
@@ -56,13 +54,13 @@ class Terminado:
 
         data should be a string
         """
-        return self.send(['stdin', data])
+        return self.send(["stdin", data])
 
     def set_size(self, rows, cols):
         """
         Set terminado's terminal cols / rows size
         """
-        return self.send(['set_size', rows, cols])
+        return self.send(["set_size", rows, cols])
 
     async def on_receive(self, on_receive):
         """
