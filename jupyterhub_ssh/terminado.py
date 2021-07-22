@@ -1,6 +1,5 @@
 import websockets
 import json
-from contextlib import asynccontextmanager
 
 
 class Terminado:
@@ -77,7 +76,7 @@ class Terminado:
         while True:
             try:
                 data = await self.ws.recv()
-            except websockets.exceptions.ConnectionClosedError as e:
+            except websockets.exceptions.ConnectionClosedError:
                 print("websocket done")
                 break
             await on_receive(json.loads(data))
