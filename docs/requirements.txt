@@ -1,5 +1,5 @@
 autodoc-traits
-sphinx-book-theme
 myst_parser[sphinx]
-sphinx-copybutton
 sphinx<3
+sphinx-book-theme
+sphinx-copybutton
