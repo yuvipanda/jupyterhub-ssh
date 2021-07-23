@@ -104,14 +104,14 @@ proxy:
      #
      # We must accept traffic to the k8s Service (proxy-public) receiving traffic
      # from the internet. Port 22 is typically used for both SSH and SFTP, but we
-     # can't use the same port for both so we use 23.
+     # can't use the same port for both so we use 2222 for SFTP in this example.
      #
      extraPorts:
        - name: ssh
          port: 22
          targetPort: ssh
        - name: sftp
-         port: 23
+         port: 2222
          targetPort: sftp
 
    traefik:
@@ -125,7 +125,7 @@ proxy:
        - name: ssh
          containerPort: 8022
        - name: sftp
-         containerPort: 8023
+         containerPort: 2222
      networkPolicy:
        allowedIngressPorts: [http, https, ssh]
 
@@ -140,7 +140,7 @@ proxy:
          ssh-entrypoint:
            address: :8022
          ssh-entrypoint:
-           address: :8023
+           address: :2222
      extraDynamicConfig:
        tcp:
          services:
@@ -154,13 +154,11 @@ proxy:
                  - address: jupyterhub-sftp:22
          routers:
            ssh-router:
-             entrypoints:
-               - ssh-entrypoint
+             entrypoints: [ssh-entrypoint]
              rule: HostSNI(`*`)
              service: ssh-service
            sftp-router:
-             entrypoints:
-               - sftp-entrypoint
+             entrypoints: [sftp-entrypoint]
              rule: HostSNI(`*`)
              service: sftp-service
 ```
