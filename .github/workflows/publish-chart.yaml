@@ -10,13 +10,13 @@ on:
       - "docs/**"
       - "**.md"
       - ".github/workflows/*"
-      - "!.github/workflows/publish.yaml"
+      - "!.github/workflows/publish-chart.yaml"
   push:
     paths-ignore:
       - "docs/**"
       - "**.md"
       - ".github/workflows/*"
-      - "!.github/workflows/publish.yaml"
+      - "!.github/workflows/publish-chart.yaml"
     branches-ignore:
       - "dependabot/**"
     tags:
