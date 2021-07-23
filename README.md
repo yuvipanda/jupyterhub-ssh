@@ -127,7 +127,7 @@ proxy:
        - name: sftp
          containerPort: 2222
      networkPolicy:
-       allowedIngressPorts: [http, https, ssh]
+       allowedIngressPorts: [http, https, ssh, sftp]
 
      # jupyterhub-ssh/sftp integration part 3/3:
      #
@@ -139,7 +139,7 @@ proxy:
        entryPoints:
          ssh-entrypoint:
            address: :8022
-         ssh-entrypoint:
+         sftp-entrypoint:
            address: :2222
      extraDynamicConfig:
        tcp:
