@@ -29,6 +29,12 @@ jobs:
   #
   publish:
     runs-on: ubuntu-20.04
+
+    # Explicitly request permissions to push to this git repository's gh-pages
+    # branch via the the GITHUB_TOKEN we can have access to.
+    permissions:
+      contents: write
+
     steps:
       - uses: actions/checkout@v2
         with:
@@ -88,6 +94,8 @@ jobs:
 
       - name: Publish images and chart with chartpress
         if: steps.publishing.outputs.publishing
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
         run: |
           set -eux
           cd helm-chart    
