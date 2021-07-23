@@ -1,6 +1,7 @@
 # JupyterHub SSH and SFTP
 
-[![Documentation build status](https://img.shields.io/readthedocs/jupyterhub?logo=read-the-docs)](https://jupyterhub-ssh.readthedocs.io/en/latest/)
+[![Documentation build status](https://img.shields.io/readthedocs/jupyterhub-ssh?logo=read-the-docs)](https://jupyterhub-ssh.readthedocs.io/en/latest/)
+[![GitHub Workflow Status - Test](https://img.shields.io/github/workflow/status/jupyterhub/zero-to-jupyterhub-k8s/Test%20chart?logo=github&label=tests)](https://github.com/jupyterhub/zero-to-jupyterhub-k8s/actions)
 
 Access through [SSH](https://www.ssh.com/ssh) any JupyterHub, regardless how it was deployed and easily transfer files through [SFTP](https://www.ssh.com/ssh/sftp).
 With a JupyterHub [SSH](https://www.ssh.com/ssh) server deployed, you can start and access your JupyterHub user environment through SSH. With a JupyterHub
