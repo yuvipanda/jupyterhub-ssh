@@ -71,7 +71,7 @@ jobs:
 
       - name: Setup push rights to container registry
         if: steps.publishing.outputs.publishing
-        run: docker login -u "${{ secrets.QUAY_USERNAME }}" -p "${{ secrets.QUAY_PASSWORD }}"
+        run: docker login quay.io -u "${{ secrets.QUAY_USERNAME }}" -p "${{ secrets.QUAY_PASSWORD }}"
 
       - name: Configure a git user
         run: |
