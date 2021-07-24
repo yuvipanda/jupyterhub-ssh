@@ -26,6 +26,11 @@ ssh:
   enabled: true
   replicaCount: 1
 
+  config:
+    JupyterHubSSH:
+      debug: true
+      host_key_path: /etc/jupyterhub-ssh/config/hostKey
+
   image:
     repository: quay.io/jupyterhub-ssh/ssh
     tag: "set-by-chartpress"
