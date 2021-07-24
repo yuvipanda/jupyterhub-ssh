@@ -41,6 +41,33 @@ properties:
   ssh:
     type: object
     description: TODO
+    properties:
+      config:
+        type: object
+        description: |
+          The Jupyter ecosystem's Python classes expose configuration through
+          [_traitlets_](https://traitlets.readthedocs.io/en/stable/), and this
+          Helm chart config represented as _static_ YAML values will be directly
+          mapped to updating such traitlet configuration.
+
+          __Example__
+
+          If you inspect documentation for JupyterHubSSH the Python class to
+          describing it can be configured like:
+
+          ```python
+          c.JupyterHubSSH.debug = true
+          ```
+
+          Then in this Helm chart, the equivalent configuration would be like
+          this:
+
+          ```yaml
+          hub:
+            config:
+              JupyterHubSSH:
+                debug: true
+          ```
 
   sftp:
     type: object
