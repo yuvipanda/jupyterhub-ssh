@@ -226,8 +226,20 @@ class JupyterHubSSH(Application):
         "",
         help="""
         URL of JupyterHub's proxy to connect to.
+        
+        `jupyterhub-ssh` needs to be able to connect to both the
+        JupyterHub API and to the user's server. If running in
+        the same cluster as the JupyterHub, this should point to
+        the `proxy-public` service. When running outside the same
+        cluster, this should be set to the user accessible URL of
+        the hub.
 
         *Must* be set.
+        
+        Examples:
+        
+        `http://proxy-public` (in same cluster & namespace as jupyterhub)
+        `https://my-hub-url.com` (when running outside the cluster)
         """,
         config=True,
     )
