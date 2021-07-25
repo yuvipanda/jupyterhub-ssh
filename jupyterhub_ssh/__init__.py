@@ -225,7 +225,7 @@ class JupyterHubSSH(Application):
     hub_url = Any(
         "",
         help="""
-        URL of JupyterHub to connect to.
+        URL of JupyterHub's proxy to connect to.
 
         *Must* be set.
         """,
