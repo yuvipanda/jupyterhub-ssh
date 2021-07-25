@@ -53,20 +53,28 @@ class NotebookSSHServer(asyncssh.SSHServer):
 
     async def start_user_server(self, session, username):
         """ """
+        # REST API reference:       https://jupyterhub.readthedocs.io/en/stable/_static/rest-api/index.html#operation--users--name--server-post
+        # REST API implementation:  https://github.com/jupyterhub/jupyterhub/blob/187fe911edce06eb067f736eaf4cc9ea52e69e08/jupyterhub/apihandlers/users.py#L451-L497
         create_url = self.app.hub_url / "hub/api/users" / username / "server"
+
         async with session.post(create_url) as resp:
             if resp.status == 201 or resp.status == 400:
+                # FIXME: code 400 can mean "pending stop" or "already running",
+                #        but we assume it means that the server is already
+                #        running.
+
                 # Server started quickly
                 # We manually generate this, even though it's *bad*
                 # Mostly because when the server is already running, JupyterHub
                 # doesn't respond with the whole model!
                 return self.app.hub_url / "user" / username
             elif resp.status == 202:
-                # Server start requested, not done yet
-                # We check for a while, reporting progress to user - until we're done
+                # Server start has been requested, now and potentially earlier,
+                # but hasn't started quickly and is pending spawn.
+                # We check for a while, reporting progress to user - until we're
+                # done
                 try:
-                    # FIXME: Make this configurable?
-                    async with timeout(30):
+                    async with timeout(self.app.start_timeout):
                         notebook_url = None
                         self._conn.send_auth_banner("Starting your server...")
                         while notebook_url is None:
@@ -238,6 +246,15 @@ class JupyterHubSSH(Application):
         Path to host's private SSH Key.
 
         *Must* be set.
+        """,
+        config=True,
+    )
+
+    start_timeout = Integer(
+        30,
+        help="""
+        Timeout in seconds to wait for a server to start before before closing
+        the SSH connection.
         """,
         config=True,
     )
