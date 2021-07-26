@@ -9,6 +9,7 @@ from traitlets import Any
 from traitlets import Bool
 from traitlets import Integer
 from traitlets import Unicode
+from traitlets import validate
 from traitlets.config import Application
 from yarl import URL
 
@@ -229,16 +230,43 @@ class JupyterHubSSH(Application):
         config=True,
     )
 
-    # FIXME: Make this a yarl.URL object?
     hub_url = Any(
         "",
         help="""
-        URL of JupyterHub to connect to.
+        URL of JupyterHub's proxy to connect to.
+
+        jupyterhub-ssh needs to be able to connect to both the JupyterHub API
+        (/hub/api) and to the users' servers (/user/<username>) via HTTP or
+        HTTPS. This URL doesn't have to be the public URL though as the URL is
+        only be used by jupyterhub-ssh itself.
 
         *Must* be set.
+
+        Examples:
+
+        - If jupyterhub-ssh is deployed in the same Kubernetes cluster and
+          namespace as the official JupyterHub Helm chart, you can use
+          `http://proxy-public` or `http://proxy-http:8000` depending on
+          how the JupyterHub Helm chart is configured. Use
+          `http://proxy-http:8000` if the JupyterHub Helm chart has been
+          configured with both `proxy.https.enabled=true` and
+          `proxy.https.type=letsencrypt`, otherwise use `http://proxy-public`.
+
+        - If jupyterhub-ssh can't access JupyterHub's proxy via local network or
+          you don't trust the local network to be secure, use a public URL with
+          HTTPS such as `https://my-hub-url.com`.
         """,
         config=True,
     )
+
+    @validate("hub_url")
+    def _hub_url_cast_string_to_yarl_url(self, proposal):
+        if isinstance(proposal.value, str):
+            return URL(proposal.value)
+        elif isinstance(proposal.value, URL):
+            return proposal.value
+        else:
+            raise ValueError("hub_url must either be a string or a yarl.URL")
 
     host_key_path = Unicode(
         "",
@@ -282,10 +310,6 @@ class JupyterHubSSH(Application):
         super().initialize(*args, **kwargs)
         self.load_config_file(self.config_file)
         self.init_logging()
-
-        # FIXME: Do this as a traitlet instead somehow?
-        # THIS IS DIRTY MAKES ME SAD
-        self.hub_url = URL(self.hub_url)
 
     async def start_server(self):
         await asyncssh.listen(
