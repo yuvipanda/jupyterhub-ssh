@@ -1,63 +1,27 @@
-#	$OpenBSD: sshd_config,v 1.103 2018/04/09 20:41:22 tj Exp $
-
-# This is the sshd server system-wide configuration file.  See
-# sshd_config(5) for more information.
-
-# This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin
-
-# The strategy used for options in the default sshd_config shipped with
-# OpenSSH is to specify options with their default value where
-# possible, but leave them commented.  Uncommented options override the
-# default value.
-
-Include /etc/ssh/sshd_config.d/*.conf
-
+# sshd still runs as root for chroot functionality, but
+# we listen on a non-privileged port anyway. This matches
+# the recommended port we expose in the helm chart.
 Port 2222
-#AddressFamily any
-#ListenAddress 0.0.0.0
-#ListenAddress ::
 
 # This file is assumed to be mounted to the Docker container
 HostKey /etc/jupyterhub-sftp/config/hostKey
 
-# Ciphers and keying
-#RekeyLimit default none
-
-# Logging
-#SyslogFacility AUTH
-#LogLevel INFO
-
-# Authentication:
-
-#LoginGraceTime 2m
-#PermitRootLogin prohibit-password
-#StrictModes yes
-#MaxAuthTries 6
-#MaxSessions 10
-
 # Only allow password auth, BECAUSE WE ARE EVIL HAHA
+# But also because users log in with their jupyterhub tokens
 PubkeyAuthentication no
-
-# To disable tunneled clear text passwords, change to no here!
 PasswordAuthentication yes
+
+# Passwords are jupyterhub Auth tokens, so they can't be empty
 PermitEmptyPasswords no
 
-# Change to yes to enable challenge-response passwords (beware issues with
-# some PAM modules and threads)
+# FIXME: I'm not sure what to do with this one
 ChallengeResponseAuthentication no
 
-# Set this to 'yes' to enable PAM authentication, account processing,
-# and session processing. If this is enabled, PAM authentication will
-# be allowed through the ChallengeResponseAuthentication and
-# PasswordAuthentication.  Depending on your PAM configuration,
-# PAM authentication via ChallengeResponseAuthentication may bypass
-# the setting of "PermitRootLogin without-password".
-# If you just want the PAM account and session checks to run without
-# PAM authentication, then enable this but set PasswordAuthentication
-# and ChallengeResponseAuthentication to 'no'.
+# Our custom PAM module (pam_exec) calls jupyterhub-token-verify.py to
+# authenticate with a JupyterHub token.
 UsePAM yes
 
-# We really only want sftp
+# Explicitly turn off all features of sshd we won't use
 AllowAgentForwarding No
 AllowTcpForwarding no
 GatewayPorts no
@@ -65,12 +29,12 @@ X11Forwarding no
 PermitTTY no
 PrintMotd no
 PrintLastLog no
-TCPKeepAlive yes
 PermitUserEnvironment no
 PermitTunnel no
 
-# no default banner path
-#Banner none
+# Use heartbeat packets to terminate 'stuck' connections
+# https://man.openbsd.org/sshd_config#TCPKeepAlive
+TCPKeepAlive yes
 
 # Use the built-in internal-sftp setup, rather than shelling out to sftp-server
 Subsystem	sftp	internal-sftp
