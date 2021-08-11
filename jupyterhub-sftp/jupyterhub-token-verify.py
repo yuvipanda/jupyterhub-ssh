@@ -52,6 +52,13 @@ We do this if needed the first time a user logs in. However, the user
 controls ${USERNAME}. If we aren't careful, they can use it to have us
 give them read (and possibly write) access to *any* part of the filesystem.
 So we have to be very careful doing this.
+
+# DEVELOPER NOTES
+
+If this script raises a Python error, logs will be emitted to /tmp/debug.log as
+configured via the /etc/pam.d/common-auth file.
+
+FIXME: make some logs be emitted one way or another
 """
 import os
 import string
