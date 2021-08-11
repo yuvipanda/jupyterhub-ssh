@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 """
 Verify that a JupyterHub token is valid for a given user
 
