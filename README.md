@@ -177,6 +177,10 @@ proxy:
    ssh <hub-username>@<hub-address>
    ```
 
+   The `<hub-username>` should be what you see in the top right corner when
+   viewing `https://<hub-address>/hub/home`. This may different from the UNIX
+   user you see within the started server, for example in a terminal prompt.
+
 4. Enter the token received from JupyterHub as a password.
 
 5. TADA :tada: Now you have an interactive terminal! You can do anything you would generally interactively do via ssh: run editors,
