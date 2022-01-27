@@ -40,12 +40,12 @@ class NotebookSSHServer(asyncssh.SSHServer):
 
         Else return None
         """
-        dashChar = "-"
-        serverName = ""
-        if dashChar in username:
-            usernameWithServer = username.split(dashChar, 1)
-            username = usernameWithServer[0]
-            serverName = usernameWithServer[1]
+        dash_char = "-"
+        server_name = ""
+        if dash_char in username:
+            username_with_server = username.split(dash_char, 1)
+            username = username_with_server[0]
+            server_name = username_with_server[1]
         async with session.get(self.app.hub_url / "hub/api/users" / username) as resp:
             if resp.status != 200:
                 return None
@@ -53,8 +53,8 @@ class NotebookSSHServer(asyncssh.SSHServer):
             # # Checking if username has any - which would be the name of the particular server the user wants to connect to
             # # For example username would look like admin-mytestserver. Any characters can be used here but chose - just for the sake of it
             # # If the server name itself has - then we would need to split only once. Splitting with split(char, #Occurrence)
-            # if serverName:
-            #     server = user.get("servers/" + serverName, {}).get("", {})
+            # if server_name:
+            #     server = user.get("servers/" + server_name, {}).get("", {})
             #     if server.get("ready", False):
             #         return self.app.hub_url / user["servers"][""]["url"][1:]
             #     else:
@@ -62,7 +62,7 @@ class NotebookSSHServer(asyncssh.SSHServer):
             # URLs will have preceding slash, but yarl forbids those
             server = user.get("servers", {}).get("", {})
             if server.get("ready", False):
-                return self.app.hub_url / user["servers"][serverName if serverName!="" else ""]["url"][1:]
+                return self.app.hub_url / user["servers"][server_name if server_name!="" else ""]["url"][1:]
             else:
                 return None
 
@@ -70,15 +70,15 @@ class NotebookSSHServer(asyncssh.SSHServer):
         """ """
         # REST API reference:       https://jupyterhub.readthedocs.io/en/stable/_static/rest-api/index.html#operation--users--name--server-post
         # REST API implementation:  https://github.com/jupyterhub/jupyterhub/blob/187fe911edce06eb067f736eaf4cc9ea52e69e08/jupyterhub/apihandlers/users.py#L451-L497
-        dashChar = "-"
-        serverName = ""
-        if dashChar in username:
-            usernameWithServer = username.split(dashChar, 1)
-            username = usernameWithServer[0]
-            serverName = usernameWithServer[1]
+        dash_char = "-"
+        server_name = ""
+        if dash_char in username:
+            username_with_server = username.split(dash_char, 1)
+            username = username_with_server[0]
+            server_name = username_with_server[1]
         
-        if serverName:
-            create_url = self.app.hub_url / "hub/api/users" / username / "servers" / serverName
+        if server_name:
+            create_url = self.app.hub_url / "hub/api/users" / username / "servers" / server_name
         else:
             create_url = self.app.hub_url / "hub/api/users" / username / "server"
 
@@ -92,8 +92,8 @@ class NotebookSSHServer(asyncssh.SSHServer):
                 # We manually generate this, even though it's *bad*
                 # Mostly because when the server is already running, JupyterHub
                 # doesn't respond with the whole model!
-                if serverName:
-                    return self.app.hub_url / "user" / username / serverName
+                if server_name:
+                    return self.app.hub_url / "user" / username / server_name
                 return self.app.hub_url / "user" / username
             elif resp.status == 202:
                 # Server start has been requested, now and potentially earlier,
@@ -107,9 +107,9 @@ class NotebookSSHServer(asyncssh.SSHServer):
                         while notebook_url is None:
                             # FIXME: Exponential backoff + make this configurable
                             await asyncio.sleep(0.5)
-                            if serverName:
+                            if server_name:
                                 notebook_url = await self.get_user_server_url(
-                                    session, username + "/" + serverName
+                                    session, username + "/" + server_name
                                 )
                             notebook_url = await self.get_user_server_url(
                                 session, username
