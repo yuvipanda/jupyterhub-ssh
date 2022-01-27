@@ -215,3 +215,8 @@ proxy:
 4. Enter the token received from JupyterHub as a password.
 
 5. TADA :tada: Now you can transfer files to and from your home directory on the hubs.
+
+
+# Disclaimer
+I do not own this project. Please look at official project at https://github.com/yuvipanda/jupyterhub-ssh
+I just added a few lines of code to support named servers.
