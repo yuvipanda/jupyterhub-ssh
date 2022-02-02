@@ -40,6 +40,9 @@ class NotebookSSHServer(asyncssh.SSHServer):
 
         Else return None
         """
+        # Checking if username has any dash char "-" which would be then have the name of the named server the user wants to connect to
+        # For example username would look like admin-mytestserver. Any characters can be used here but chose - just for the sake of it
+        # If the server name itself has "-" then we would need to split only once. Splitting with split(char, #Occurrence)
         dash_char = "-"
         server_name = ""
         if dash_char in username:
@@ -50,16 +53,6 @@ class NotebookSSHServer(asyncssh.SSHServer):
             if resp.status != 200:
                 return None
             user = await resp.json()
-            # # Checking if username has any - which would be the name of the particular server the user wants to connect to
-            # # For example username would look like admin-mytestserver. Any characters can be used here but chose - just for the sake of it
-            # # If the server name itself has - then we would need to split only once. Splitting with split(char, #Occurrence)
-            # if server_name:
-            #     server = user.get("servers/" + server_name, {}).get("", {})
-            #     if server.get("ready", False):
-            #         return self.app.hub_url / user["servers"][""]["url"][1:]
-            #     else:
-            #         return None
-            # URLs will have preceding slash, but yarl forbids those
             server = user.get("servers", {}).get("", {})
             if server.get("ready", False):
                 return self.app.hub_url / user["servers"][server_name if server_name!="" else ""]["url"][1:]
@@ -70,7 +63,10 @@ class NotebookSSHServer(asyncssh.SSHServer):
         """ """
         # REST API reference:       https://jupyterhub.readthedocs.io/en/stable/_static/rest-api/index.html#operation--users--name--server-post
         # REST API implementation:  https://github.com/jupyterhub/jupyterhub/blob/187fe911edce06eb067f736eaf4cc9ea52e69e08/jupyterhub/apihandlers/users.py#L451-L497
-        dash_char = "-"
+        
+        # Checking if username has any dash char "-" which would be then have the name of the named server the user wants to connect to
+        # For example username would look like admin-mytestserver. Any characters can be used here but chose - just for the sake of it
+        # If the server name itself has "-" then we would need to split only once. Splitting with split(char, #Occurrence)dash_char = "-"
         server_name = ""
         if dash_char in username:
             username_with_server = username.split(dash_char, 1)
