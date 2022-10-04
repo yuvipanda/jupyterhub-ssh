@@ -29,9 +29,9 @@ spec:
         - name: config
           secret:
             secretName: {{ include "jupyterhub-ssh.fullname" . }}
-      {{- with .Values.ssh.extraVolumes }}
-      {{- . | toYaml | nindent 8 }}
-      {{- end }}
+        {{- with .Values.ssh.extraVolumes }}
+        {{- . | toYaml | nindent 8 }}
+        {{- end }}
 
       {{- with .Values.ssh.initContainers }}
       initContainers:
@@ -48,9 +48,9 @@ spec:
             - name: config
               mountPath: /etc/jupyterhub-ssh/config
               readOnly: true
-          {{- with .Values.ssh.extraVolumeMounts }}
-          {{- . | toYaml | nindent 12 }}
-          {{- end }}
+            {{- with .Values.ssh.extraVolumeMounts }}
+            {{- . | toYaml | nindent 12 }}
+            {{- end }}
           ports:
             - name: ssh
               containerPort: 8022
