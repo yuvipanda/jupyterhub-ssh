@@ -69,6 +69,20 @@ properties:
                 debug: true
           ```
 
+      initContainers:
+        type: array
+        description: |
+          Init containers definition as defined in the [k8s docuementation](
+          https://kubernetes.io/docs/concepts/workloads/pods/init-containers/).
+      extraVolumes:
+        type: array
+        description: |
+          Additional volume(s) that will be made available for the containers to
+          consume.
+      extraVolumeMounts:
+        type: array
+        description: |
+          Additional volume mount(s) that will be added to all the containers.
   sftp:
     type: object
     description: TODO
