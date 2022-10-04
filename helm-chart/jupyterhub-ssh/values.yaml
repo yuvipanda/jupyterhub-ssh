@@ -54,6 +54,10 @@ ssh:
   affinity: {}
   networkPolicy: {}
 
+  initContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
+
 sftp:
   enabled: true
   replicaCount: 1
