@@ -1,6 +1,6 @@
 # To build this Dockerfile locally:
 #
-#   docker build --tag jupyterhub-ssh ../../.. -f Dockerfile
+#   > DOCKER_BUILDKIT=1 docker build --tag jupyterhub-ssh . -f ./helm-chart/images/jupyterhub-ssh/Dockerfile
 #
 FROM python:3.8-slim
 
