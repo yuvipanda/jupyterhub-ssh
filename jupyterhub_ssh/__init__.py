@@ -23,6 +23,7 @@ class NotebookSSHServer(asyncssh.SSHServer):
 
     def __init__(self, app, *args, **kwargs):
         self.app = app
+        self.fail_banner_sent = False
         super().__init__(*args, **kwargs)
 
     def connection_made(self, conn):
@@ -106,6 +107,9 @@ class NotebookSSHServer(asyncssh.SSHServer):
         async with ClientSession(headers=headers) as session:
             notebook_url = await self.start_user_server(session, username)
             if notebook_url is None:
+                if self.app.banner_auth_fail and not self.fail_banner_sent:
+                    self.fail_banner_sent = True
+                    self._conn.send_auth_banner(self.app.banner_auth_fail)
                 return False
             else:
                 self.notebook_url = notebook_url
@@ -285,6 +289,15 @@ class JupyterHubSSH(Application):
         the SSH connection.
         """,
         config=True,
+    )
+
+    banner_auth_fail = Unicode(
+        "",
+        help="""
+        Text to be presented to client when authentication fails the first time.
+        Can be used to point the user to documentation.
+        """,
+        config=True
     )
 
     def init_logging(self):
