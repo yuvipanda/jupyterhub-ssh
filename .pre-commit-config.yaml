@@ -11,7 +11,7 @@
 repos:
   # Autoformat: Python code
   - repo: https://github.com/psf/black
-    rev: 21.7b0
+    rev: 22.3.0
     hooks:
       - id: black
         args: [--target-version=py39]
@@ -48,7 +48,7 @@ repos:
       - id: check-executables-have-shebangs
 
   # Lint: Python code
-  - repo: https://gitlab.com/pycqa/flake8
+  - repo: https://github.com/pycqa/flake8
     rev: "3.9.2"
     hooks:
       - id: flake8
