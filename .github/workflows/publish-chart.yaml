@@ -49,6 +49,7 @@ jobs:
         id: publishing
         shell: python
         run: |
+          import os
           publishing = ""
           if (
               "${{ github.repository }}" == "yuvipanda/jupyterhub-ssh"
@@ -61,7 +62,8 @@ jobs:
           ):
               publishing = "true"
               print("Publishing chart")
-          print(f"::set-output name=publishing::{publishing}")
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+              print(f'publishing={publishing}', file=fh)
 
       - name: Set up QEMU (for docker buildx)
         uses: docker/setup-qemu-action@27d0a4f181a40b142cce983c5393082c365d1480
