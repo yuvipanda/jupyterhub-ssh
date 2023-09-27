@@ -1,3 +1,10 @@
+aiohttp
+asyncssh
 chartpress
+notebook
 pytest
 pyyaml
+pytest-asyncio
+requests
+websockets
+yarl
