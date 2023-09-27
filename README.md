@@ -8,6 +8,17 @@ With a JupyterHub [SSH](https://www.ssh.com/ssh) server deployed, you can start 
 [SFTP](https://www.ssh.com/ssh/sftp) server deployed alongside the JupyterHub's user storage, you can use SFTP to work against your JupyterHub user's home directory.
 These services are authenticated using an access token acquired from your JupyterHub's user interface under `/hub/token`.
 
+## What does this fork have? 
+This project a forked project from yuvipanda/jupyterhub_ssh and I was able to directly contribute to create a fork to support one small feature.
+
+Current jupyterhub-ssh by yuvipanda only supports ssh connection to unnamed server. I added few lines to support named server as well. 
+
+The way it'd work is if you have a named server, you'd simply do `ssh user-namedserver@hub_url`
+ 
+It does create the named server automactically if it doesn't exist, which you'll be able to view in the JupyterHub UI as well. 
+
+All the other features remain the same and you can still connect to unnamed server by just `user@hub_url`
+
 ## Development Status
 
 This project is under active develpoment :tada:, so expect a few changes along the way.
@@ -204,3 +215,8 @@ proxy:
 4. Enter the token received from JupyterHub as a password.
 
 5. TADA :tada: Now you can transfer files to and from your home directory on the hubs.
+
+
+# Disclaimer
+I do not own this project. Please look at official project at https://github.com/yuvipanda/jupyterhub-ssh
+I just added a few lines of code to support named servers.
