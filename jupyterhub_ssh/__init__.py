@@ -40,15 +40,19 @@ class NotebookSSHServer(asyncssh.SSHServer):
 
         Else return None
         """
+        server_name = ""
+        if "#" in username:
+            username, server_name = username.split("#", 1)
+            print("Using username for custom instance", username, server_name)
+        else:
+            print("Using username for default instance", username)
         async with session.get(self.app.hub_url / "hub/api/users" / username) as resp:
             if resp.status != 200:
                 return None
             user = await resp.json()
-            print(user)
-            # URLs will have preceding slash, but yarl forbids those
             server = user.get("servers", {}).get("", {})
             if server.get("ready", False):
-                return self.app.hub_url / user["servers"][""]["url"][1:]
+                return self.app.hub_url / user["servers"][server_name]["url"][1:]
             else:
                 return None
 
@@ -57,6 +61,14 @@ class NotebookSSHServer(asyncssh.SSHServer):
         # REST API reference:       https://jupyterhub.readthedocs.io/en/stable/_static/rest-api/index.html#operation--users--name--server-post
         # REST API implementation:  https://github.com/jupyterhub/jupyterhub/blob/187fe911edce06eb067f736eaf4cc9ea52e69e08/jupyterhub/apihandlers/users.py#L451-L497
         create_url = self.app.hub_url / "hub/api/users" / username / "server"
+        server_name = ""
+        if "#" in username:
+            username, server_name = username.split("#", 1)
+
+        if server_name:
+            create_url = self.app.hub_url / "hub/api/users" / username / "servers" / server_name
+
+        print("create_url: ", create_url, flush=True)
 
         async with session.post(create_url) as resp:
             if resp.status == 201 or resp.status == 400:
@@ -68,6 +80,10 @@ class NotebookSSHServer(asyncssh.SSHServer):
                 # We manually generate this, even though it's *bad*
                 # Mostly because when the server is already running, JupyterHub
                 # doesn't respond with the whole model!
+                if server_name:
+                    print("Custom-named server started", username, server_name)
+                    return self.app.hub_url / "user" / username / server_name
+                print("Server started", username, server_name)
                 return self.app.hub_url / "user" / username
             elif resp.status == 202:
                 # Server start has been requested, now and potentially earlier,
@@ -78,24 +94,34 @@ class NotebookSSHServer(asyncssh.SSHServer):
                     async with timeout(self.app.start_timeout):
                         notebook_url = None
                         self._conn.send_auth_banner("Starting your server...")
+                        print("Server start requested", username, server_name)
                         while notebook_url is None:
                             # FIXME: Exponential backoff + make this configurable
                             await asyncio.sleep(0.5)
-                            notebook_url = await self.get_user_server_url(
-                                session, username
-                            )
+                            if server_name:
+                                notebook_url = await self.get_user_server_url(
+                                    session, username + "/" + server_name
+                                )
+                            else:
+                                notebook_url = await self.get_user_server_url(
+                                    session, username
+                                )
                             self._conn.send_auth_banner(".")
                         self._conn.send_auth_banner("done!\n")
+                        print("Server started", username, server_name)
                         return notebook_url
                 except asyncio.TimeoutError:
                     # Server didn't start on time!
                     self._conn.send_auth_banner("failed to start server on time!\n")
+                    print("Server start timed out", username, server_name)
                     return None
             elif resp.status == 403:
+                print("The token seems to be wrong for user ", username)
                 # Token is wrong!
                 return None
             else:
                 # FIXME: Handle other cases that pop up
+                print("Unhandled response", resp.status)
                 resp.raise_for_status()
 
     async def validate_password(self, username, token):
@@ -225,13 +251,13 @@ class JupyterHubSSH(Application):
     debug = Bool(
         True,
         help="""
-        Turn on debugg logging
+        Turn on debug logging
         """,
         config=True,
     )
 
     hub_url = Any(
-        "",
+        URL("http://proxy-public.jhub.svc.cluster.local"),
         help="""
         URL of JupyterHub's proxy to connect to.
 
@@ -269,7 +295,7 @@ class JupyterHubSSH(Application):
             raise ValueError("hub_url must either be a string or a yarl.URL")
 
     host_key_path = Unicode(
-        "",
+        "/etc/jupyterhub-ssh/config/hostKey",
         help="""
         Path to host's private SSH Key.
 
