@@ -24,7 +24,7 @@ on:
 
 jobs:
   # Builds and pushes docker images to Quay.io, package the Helm chart, and
-  # pushes it to yuvipanda/jupyterhub-ssh@gh-pages where index.yaml represents
+  # pushes it to luminartech/jupyterhub-ssh@gh-pages where index.yaml represents
   # the JupyterHub organization Helm chart repository.
   #
   publish:
@@ -52,7 +52,7 @@ jobs:
           import os
           publishing = ""
           if (
-              "${{ github.repository }}" == "yuvipanda/jupyterhub-ssh"
+              "${{ github.repository }}" == "luminartech/jupyterhub-ssh"
               and "${{ github.event_name }}" == "push"
               and (
                   "${{ github.event.ref }}".startswith("refs/tags/")
