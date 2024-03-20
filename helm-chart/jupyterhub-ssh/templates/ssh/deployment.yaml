@@ -33,6 +33,14 @@ spec:
         - name: server
           image: "{{ .Values.ssh.image.repository }}:{{ .Values.ssh.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.ssh.image.pullPolicy }}
+          command: 
+            {{- with .Values.ssh.server.command }}
+            {{- . | toYaml | nindent 12 }}
+            {{- end }}
+          {{- with .Values.ssh.server.env }}
+          env:
+            {{- . | toYaml | nindent 12 }}
+          {{- end }}
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true

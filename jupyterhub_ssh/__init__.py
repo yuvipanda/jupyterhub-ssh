@@ -3,7 +3,7 @@ import logging
 from functools import partial
 
 import asyncssh
-from aiohttp import ClientSession
+from aiohttp import ClientSession, TCPConnector
 from async_timeout import timeout
 from traitlets import Any
 from traitlets import Bool
@@ -12,51 +12,51 @@ from traitlets import Unicode
 from traitlets import validate
 from traitlets.config import Application
 from yarl import URL
+import os
 
 from .terminado import Terminado
 
 
 class NotebookSSHServer(asyncssh.SSHServer):
-    """
-    A single SSH connection mapping to a notebook server on a JupyterHub
-    """
+    """A single SSH connection mapping to a notebook server on a JupyterHub."""
 
     def __init__(self, app, *args, **kwargs):
         self.app = app
+        self.token = os.environ['JUPYTERHUB_SSH_TOKEN']
         super().__init__(*args, **kwargs)
 
     def connection_made(self, conn):
-        """
-        Connection has been successfully established
-        """
+        """Connection has been successfully established."""
         self._conn = conn
+
+    def public_key_auth_supported(self):
+        return True
 
     def password_auth_supported(self):
         return True
 
     async def get_user_server_url(self, session, username):
-        """
-        Return user's server url if it is running.
+        """Return user's server url if it is running.
 
         Else return None
         """
-        async with session.get(self.app.hub_url / "hub/api/users" / username) as resp:
+        async with session.get(self.app.hub_url / 'hub/api/users' /
+                               username) as resp:
             if resp.status != 200:
                 return None
             user = await resp.json()
-            print(user)
             # URLs will have preceding slash, but yarl forbids those
-            server = user.get("servers", {}).get("", {})
-            if server.get("ready", False):
-                return self.app.hub_url / user["servers"][""]["url"][1:]
+            server = user.get('servers', {}).get('', {})
+            if server.get('ready', False):
+                return self.app.hub_url / user['servers']['']['url'][1:]
             else:
                 return None
 
     async def start_user_server(self, session, username):
-        """ """
+        """"""
         # REST API reference:       https://jupyterhub.readthedocs.io/en/stable/_static/rest-api/index.html#operation--users--name--server-post
         # REST API implementation:  https://github.com/jupyterhub/jupyterhub/blob/187fe911edce06eb067f736eaf4cc9ea52e69e08/jupyterhub/apihandlers/users.py#L451-L497
-        create_url = self.app.hub_url / "hub/api/users" / username / "server"
+        create_url = self.app.hub_url / 'hub/api/users' / username / 'server'
 
         async with session.post(create_url) as resp:
             if resp.status == 201 or resp.status == 400:
@@ -68,7 +68,7 @@ class NotebookSSHServer(asyncssh.SSHServer):
                 # We manually generate this, even though it's *bad*
                 # Mostly because when the server is already running, JupyterHub
                 # doesn't respond with the whole model!
-                return self.app.hub_url / "user" / username
+                return self.app.hub_url / 'user' / username
             elif resp.status == 202:
                 # Server start has been requested, now and potentially earlier,
                 # but hasn't started quickly and is pending spawn.
@@ -77,19 +77,19 @@ class NotebookSSHServer(asyncssh.SSHServer):
                 try:
                     async with timeout(self.app.start_timeout):
                         notebook_url = None
-                        self._conn.send_auth_banner("Starting your server...")
+                        self._conn.send_auth_banner('Starting your server...')
                         while notebook_url is None:
                             # FIXME: Exponential backoff + make this configurable
                             await asyncio.sleep(0.5)
                             notebook_url = await self.get_user_server_url(
-                                session, username
-                            )
-                            self._conn.send_auth_banner(".")
-                        self._conn.send_auth_banner("done!\n")
+                                session, username)
+                            self._conn.send_auth_banner('.')
+                        self._conn.send_auth_banner('done!\n')
                         return notebook_url
                 except asyncio.TimeoutError:
                     # Server didn't start on time!
-                    self._conn.send_auth_banner("failed to start server on time!\n")
+                    self._conn.send_auth_banner(
+                        'failed to start server on time!\n')
                     return None
             elif resp.status == 403:
                 # Token is wrong!
@@ -100,10 +100,47 @@ class NotebookSSHServer(asyncssh.SSHServer):
 
     async def validate_password(self, username, token):
         self.username = username
-        self.token = token
+        connector = TCPConnector(verify_ssl=False)
+        headers = {'Authorization': f'token {token}'}
+        async with ClientSession(
+                headers=headers, connector=connector) as session:
+            session.verify = False
 
-        headers = {"Authorization": f"token {token}"}
-        async with ClientSession(headers=headers) as session:
+            notebook_url = await self.start_user_server(session, username)
+            if notebook_url is None:
+                return False
+            else:
+                self.notebook_url = notebook_url
+                return True
+
+    async def validate_public_key(self, username: str, key: asyncssh.SSHKey):
+        self.username = username
+        token = self.token
+
+        connector = TCPConnector(verify_ssl=False)
+        headers = {'Authorization': f'token {token}'}
+        async with ClientSession(
+                headers=headers, connector=connector) as session:
+            session.verify = False
+
+            async def get_user_pub_key():
+                create_url = self.app.hub_url / 'hub/api/users' / username
+                async with session.get(create_url) as resp:
+                    resp = await resp.json()
+                    pub_keys = []
+                    for pub_key in resp['auth_state']['pub_key']:
+                        pub_keys.append(
+                            asyncssh.import_public_key(pub_key['key']))
+                    return pub_keys
+
+            pub_keys = await get_user_pub_key()
+            match_pub_key = any([key == pub_key for pub_key in pub_keys])
+            if not match_pub_key:
+                self._conn.send_auth_banner(
+                    f'No matching public key found. Ensure it is available on your GitHub account.'
+                )
+                return False
+
             notebook_url = await self.start_user_server(session, username)
             if notebook_url is None:
                 return False
@@ -112,27 +149,24 @@ class NotebookSSHServer(asyncssh.SSHServer):
                 return True
 
     async def _handle_ws_recv(self, stdout, data_packet):
-        """
-        Handle receiving a single data message from terminado.
-        """
+        """Handle receiving a single data message from terminado."""
         kind, data = data_packet
-        if kind == "setup":
+        if kind == 'setup':
             # Signals we can get going now!
             return
-        elif kind == "change":
+        elif kind == 'change':
             # Sets terminal size, but let's ignore this for now
             return
-        elif kind == "disconnect":
+        elif kind == 'disconnect':
             # Not exactly sure what to do here?
             return
-        elif kind != "stdout":
-            raise ValueError(f"Unknown type {data[0]} received from terminado")
+        elif kind != 'stdout':
+            raise ValueError(f'Unknown type {data[0]} received from terminado')
         stdout.write(data)
         await stdout.drain()
 
     async def _handle_stdin(self, stdin, terminado):
-        """
-        Handle receiving a single byte from stdin
+        """Handle receiving a single byte from stdin.
 
         We aren't buffering anything rn, but maybe we should?
         """
@@ -149,13 +183,11 @@ class NotebookSSHServer(asyncssh.SSHServer):
                 pass
 
     async def _handle_client(self, stdin, stdout, stderr):
-        """
-        Handle data transfer once session has been fully established.
-        """
-        async with ClientSession() as client, Terminado(
-            self.notebook_url, self.token, client
-        ) as terminado:
-
+        """Handle data transfer once session has been fully established."""
+        connector = TCPConnector(verify_ssl=False)
+        async with ClientSession(connector=connector) as client, Terminado(
+                self.notebook_url, self.token, client) as terminado:
+            client.verify = False
             # If a pty has been asked for, we tell terminado what the pty's current size is
             # Otherwise, terminado uses default size of 80x22
             channel = stdin.channel
@@ -179,18 +211,17 @@ class NotebookSSHServer(asyncssh.SSHServer):
 
             # Pipe stdout from terminado to ssh
             ws_to_stdout = asyncio.create_task(
-                terminado.on_receive(partial(self._handle_ws_recv, stdout))
-            )
+                terminado.on_receive(partial(self._handle_ws_recv, stdout)))
             #
             # Pipe stdin from ssh to terminado
-            stdin_to_ws = asyncio.create_task(self._handle_stdin(stdin, terminado))
+            stdin_to_ws = asyncio.create_task(
+                self._handle_stdin(stdin, terminado))
 
             tasks = [ws_to_stdout, stdin_to_ws]
 
             # Wait for either pipe to be done
             done, pending = await asyncio.wait(
-                tasks, return_when=asyncio.FIRST_COMPLETED
-            )
+                tasks, return_when=asyncio.FIRST_COMPLETED)
 
             # At least one of the pipes is done.
             # Close the ssh connection explicitly
@@ -207,7 +238,7 @@ class NotebookSSHServer(asyncssh.SSHServer):
 
 class JupyterHubSSH(Application):
     config_file = Unicode(
-        "jupyterhub_ssh_config.py",
+        'jupyterhub_ssh_config.py',
         help="""
         Config file to load JupyterHub SSH config from
         """,
@@ -231,7 +262,7 @@ class JupyterHubSSH(Application):
     )
 
     hub_url = Any(
-        "",
+        '',
         help="""
         URL of JupyterHub's proxy to connect to.
 
@@ -259,17 +290,17 @@ class JupyterHubSSH(Application):
         config=True,
     )
 
-    @validate("hub_url")
+    @validate('hub_url')
     def _hub_url_cast_string_to_yarl_url(self, proposal):
         if isinstance(proposal.value, str):
             return URL(proposal.value)
         elif isinstance(proposal.value, URL):
             return proposal.value
         else:
-            raise ValueError("hub_url must either be a string or a yarl.URL")
+            raise ValueError('hub_url must either be a string or a yarl.URL')
 
     host_key_path = Unicode(
-        "",
+        '',
         help="""
         Path to host's private SSH Key.
 
@@ -288,20 +319,18 @@ class JupyterHubSSH(Application):
     )
 
     def init_logging(self):
-        """
-        Make traitlets & asyncssh logging work properly
+        """Make traitlets & asyncssh logging work properly.
 
-        self.log is managed by traitlets, while the logger named
-        asyncssh is managed by asyncssh. We want the debug flag to
-        control debug logs everywhere, so we wire 'em together here.
-
+        self.log is managed by traitlets, while the logger named asyncssh is
+        managed by asyncssh. We want the debug flag to control debug logs
+        everywhere, so we wire 'em together here.
         """
         self.log.setLevel(logging.DEBUG if self.debug else logging.INFO)
         # This propagates traitlet logs to root logger - somehow,
         # no logs were coming out otherwise
         self.log.propagate = True
 
-        asyncssh_logger = logging.getLogger("asyncssh")
+        asyncssh_logger = logging.getLogger('asyncssh')
         asyncssh_logger.propagate = True
         asyncssh_logger.parent = self.log
         asyncssh_logger.setLevel(self.log.level)
@@ -313,13 +342,14 @@ class JupyterHubSSH(Application):
 
     async def start_server(self):
         await asyncssh.listen(
-            host="",
+            host='',
             port=self.port,
             server_factory=partial(NotebookSSHServer, self),
             line_editor=False,
             password_auth=True,
             server_host_keys=[self.host_key_path],
-            agent_forwarding=False,  # The cause of so much pain! Let's not allow this by default
+            agent_forwarding=
+            False,  # The cause of so much pain! Let's not allow this by default
             keepalive_interval=30,  # FIXME: Make this configurable
         )
 

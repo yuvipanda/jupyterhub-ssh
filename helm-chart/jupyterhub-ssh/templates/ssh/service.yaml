@@ -14,6 +14,9 @@ metadata:
   {{- end }}
 spec:
   type: {{ .Values.ssh.service.type }}
+  {{- if eq .Values.ssh.service.type "LoadBalancer" }}
+  loadBalancerIP : {{ .Values.ssh.service.loadBalancerIP }}
+  {{- end }}
   ports:
     - name: ssh
       port: {{ .Values.ssh.service.port }}

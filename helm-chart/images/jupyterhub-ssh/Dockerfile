@@ -7,7 +7,7 @@ FROM python:3.8-slim
 RUN apt-get update -y > /dev/null \
  && apt-get upgrade -y > /dev/null \
  && apt-get install -y \
-        wget \
+        wget curl \
  && rm -rf /var/lib/apt/lists/*
 
 # Setup tini
@@ -23,26 +23,25 @@ RUN ARCH=`uname -m`; \
  && chmod +x /tini
 ENTRYPOINT ["/tini", "--"]
 
+# Install jupyterhub_ssh the Python package
+WORKDIR /srv/jupyterhub-ssh
+COPY jupyterhub_ssh ./jupyterhub_ssh
+COPY setup.py LICENSE README.md ./
+COPY jupyterhub_ssh_config.py ./
+RUN pip3 install --no-cache-dir .
+
 # Prepare a user to run as
 ENV NB_UID=1000 \
-    NB_USER=jovyan
+    NB_USER=jupyter
 RUN adduser \
     --disabled-password \
     --shell "/sbin/nologin" \
     --gecos "Default Jupyter user" \
     --uid ${NB_UID} \
     ${NB_USER}
+
 USER $NB_UID
 
-# Install jupyterhub_ssh the Python package
-WORKDIR /srv/jupyterhub-ssh
-COPY jupyterhub_ssh ./jupyterhub_ssh
-COPY setup.py LICENSE README.md ./
-COPY helm-chart/images/jupyterhub-ssh/jupyterhub_ssh_config.py ./
-RUN pip3 install --no-cache-dir .
-
 # Configure to run jupyterhub_ssh
-# - PYTHONUNBUFFERED help make Python logs made available for k8s directly
-#
 ENV PYTHONUNBUFFERED=1
-CMD ["python3", "-m", "jupyterhub_ssh"]
+CMD ["python3", "-m", "jupyterhub_ssh", "--debug"]
