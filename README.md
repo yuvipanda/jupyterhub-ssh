@@ -204,3 +204,9 @@ proxy:
 4. Enter the token received from JupyterHub as a password.
 
 5. TADA :tada: Now you can transfer files to and from your home directory on the hubs.
+
+### How to setup public key authentication
+The public key authentication works by fetching the GitHub public keys of the user when they are trying to log in and comparing against the public key of the user.
+1. Log in to JupyterHub as an admin user, and create a token that will be used to communicate with JupyterHub from JupyterHub SSH.
+2. In the namespace where you installed JupyterHub SSH, create a secret with the name `jupyterhub-ssh-token` with `token` as a key. The value of the key should be the token you generated in step 1.
+3. 
